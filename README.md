@@ -2,8 +2,8 @@
 
 Jeu Java 2D de Joël et Thomas.
 
-- `MAP` : la nouvelle map et ses décors, avec Hugo jouable.
-- `PERSONNAGE-PRINCIPAL` : part de `MAP` et ajoute le nouveau Hugo en pixel art HD, avec son visage et ses quatre poses de marche.
+- `MAP` : la nouvelle map et ses décors, avec une caméra libre.
+- `PERSONNAGE-PRINCIPAL` : conserve les assets du personnage pour que Thomas puisse le coder.
 - `main` : structure initiale.
 
 ## Lancer dans Ubuntu / VS Code
@@ -17,7 +17,7 @@ Le JDK et la version graphique du JRE doivent être installés. La version headl
 
 ## Commandes
 
-- ZQSD, WASD ou flèches : déplacement.
+- ZQSD, WASD ou flèches : déplacement de la caméra libre.
 - Molette ou + / - : zoom.
 - M : afficher ou masquer la carte.
 - R : retour au départ et réinitialisation des caisses.
@@ -33,7 +33,7 @@ Les éléments du décor sont indépendants. Les sols, routes et berges sont com
 
 Les PNG gardent leur résolution source. Le cache conserve trois pixels par unité de jeu, et le rendu à l’écran utilise le plus proche voisin pour un pixel art net. Les maisons et les chars ont été redimensionnés par rapport à Hugo.
 
-Hugo dispose de quatre poses de marche et d’une orientation gauche/droite. Les tirs, les ennemis et les effets des bonus restent à intégrer par Thomas. Les caisses déclenchent une seule fois `GameMap.setChestListener` sans donner encore de bonus.
+Hugo a été retiré du programme : chargement des sprites, rendu, animation et déplacements. Thomas peut coder le personnage. Les assets restent disponibles dans les ressources. La caméra libre permet de parcourir la map et ne déclenche aucune caisse. Les tirs, les ennemis et les effets des bonus restent à intégrer. Les caisses déclenchent une seule fois `GameMap.setChestListener` sans donner encore de bonus.
 
 ## Vérification
 
