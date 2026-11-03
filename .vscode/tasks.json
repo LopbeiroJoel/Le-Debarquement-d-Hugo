@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Compiler",
+      "type": "shell",
+      "command": "sh build.sh",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$javac"
+      ]
+    },
+    {
+      "label": "Lancer",
+      "type": "shell",
+      "command": "sh run.sh",
+      "problemMatcher": []
+    }
+  ]
+}
