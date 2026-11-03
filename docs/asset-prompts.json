@@ -1,6 +1,5 @@
 {
-  "outil": "image_gen intÃ©grÃ©",
-  "direction": "Pixel art fin et net, contours en escalier, couleurs en aplats. RÃ©fÃ©rence de style fournie par lâ€™utilisateur.",
+  "outil": "image_gen integre",
   "assets": [
     {
       "name": "sol",
