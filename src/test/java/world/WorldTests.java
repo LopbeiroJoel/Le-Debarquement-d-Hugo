@@ -10,7 +10,7 @@ public final class WorldTests {
     public static void main(String[] args)throws Exception{
         GameMap map=new GameMap();
         check(map.width==4608&&map.height==3200,"dimensions conservees");
-        check(map.entityCount()==860,"tous les objets exportes sont charges");
+        check(map.entityCount()==854,"objets charges et palissades laterales retirees");
         check(map.canMove(GameMap.playerBox(GameMap.SPAWN_X,GameMap.SPAWN_Y)),"depart libre");
         check(!map.canMove(GameMap.playerBox(0,500)),"bord gauche");
         check(!map.canMove(GameMap.playerBox(map.width,500)),"bord droit");
