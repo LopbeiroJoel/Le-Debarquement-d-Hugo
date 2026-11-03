@@ -1,37 +1,36 @@
 package world;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Disposable;
 import java.util.EnumMap;
-import javax.imageio.ImageIO;
 
-public final class Sprites {
-    private final EnumMap<AssetType,BufferedImage> cache=new EnumMap<>(AssetType.class);
-    public static BufferedImage read(String path)throws IOException{
-        try(InputStream in=Sprites.class.getResourceAsStream(path)){
-            if(in==null)throw new IOException("Ressource introuvable : "+path);
-            BufferedImage image=ImageIO.read(in);
-            if(image==null)throw new IOException("Image illisible : "+path);
-            return image;
+public final class Sprites implements Disposable {
+    private final EnumMap<AssetType,TextureRegion> cache=new EnumMap<>(AssetType.class);
+    public TextureRegion get(AssetType type){
+        TextureRegion ready=cache.get(type);
+        if(ready==null){
+            String path="render/sprites/"+type.name()+".png";
+            Texture texture;
+            if(Gdx.files.internal(path).exists())texture=new Texture(Gdx.files.internal(path));
+            else {
+                Pixmap source=new Pixmap(Gdx.files.internal(type.path.substring(1)));
+                int left=source.getWidth(),top=source.getHeight(),right=-1,bottom=-1;
+                for(int y=0;y<source.getHeight();y++)for(int x=0;x<source.getWidth();x++)if((source.getPixel(x,y)&255)>16){
+                    left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
+                }
+                if(right<left){source.dispose();throw new IllegalArgumentException("Sprite vide : "+type.path);}
+                Pixmap cropped=new Pixmap(type.width*3,type.height*3,Pixmap.Format.RGBA8888);
+                cropped.setFilter(Pixmap.Filter.NearestNeighbour);
+                cropped.drawPixmap(source,left,top,right-left+1,bottom-top+1,0,0,cropped.getWidth(),cropped.getHeight());
+                texture=new Texture(cropped);cropped.dispose();source.dispose();
+            }
+            texture.setFilter(Texture.TextureFilter.Nearest,Texture.TextureFilter.Nearest);
+            ready=new TextureRegion(texture);ready.flip(false,true);cache.put(type,ready);
         }
-    }
-    public static BufferedImage prepare(BufferedImage source,int width,int height)throws IOException{
-        int left=source.getWidth(),top=source.getHeight(),right=-1,bottom=-1;
-        for(int y=0;y<source.getHeight();y++)for(int x=0;x<source.getWidth();x++)if((source.getRGB(x,y)>>>24)>16){
-            left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
-        }
-        if(right<left)throw new IOException("Sprite vide");
-        BufferedImage result=new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g=result.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.drawImage(source,0,0,width,height,left,top,right+1,bottom+1,null);g.dispose();return result;
-    }
-    public BufferedImage get(AssetType type)throws IOException{
-        BufferedImage ready=cache.get(type);
-        if(ready==null){ready=prepare(read(type.path),type.width*3,type.height*3);cache.put(type,ready);}
         return ready;
     }
+    public void dispose(){for(TextureRegion sprite:cache.values())sprite.getTexture().dispose();cache.clear();}
 }

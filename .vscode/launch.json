@@ -3,14 +3,10 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Lancer le jeu",
+      "name": "Lancer libGDX",
       "request": "launch",
       "mainClass": "Main",
-      "classPaths": [
-        "${workspaceFolder}/build",
-        "${workspaceFolder}/src/main/resources"
-      ],
-      "preLaunchTask": "Compiler",
+      "vmArgs": "--enable-native-access=ALL-UNNAMED",
       "cwd": "${workspaceFolder}"
     }
   ]
