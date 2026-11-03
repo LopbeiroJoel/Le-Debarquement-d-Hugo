@@ -10,7 +10,7 @@ import javax.swing.*;
 public final class Main {
     public static void main(String[] args)throws Exception{
         final GameMap map=new GameMap();
-        final BufferedImage sheet=Sprites.read("/assets/hero.png");
+        final BufferedImage sheet=Sprites.read("/assets/hero-v2.png");
         final BufferedImage[] hero=new BufferedImage[4];
         int frameWidth=sheet.getWidth()/4;
         for(int i=0;i<hero.length;i++)hero[i]=Sprites.prepare(sheet.getSubimage(i*frameWidth,0,frameWidth,sheet.getHeight()),156,246);

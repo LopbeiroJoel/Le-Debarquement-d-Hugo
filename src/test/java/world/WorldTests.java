@@ -65,6 +65,9 @@ public final class WorldTests {
         check("LES TRANCHEES".equals(world.zoneAt(3900,1900)),"zone tranchees");
         check("FORET DU NORD".equals(world.zoneAt(500,400)),"zone foret");
         Sprites sprites=new Sprites();check(sprites.get(AssetType.RUIN).getWidth()==AssetType.RUIN.width*3,"details conserves dans le cache");
+        BufferedImage walkSheet=Sprites.read("/assets/hero-v2.png");
+        check(walkSheet.getWidth()/4>100,"definition des poses Hugo");
+        for(int frame=0;frame<4;frame++)Sprites.prepare(walkSheet.getSubimage(frame*(walkSheet.getWidth()/4),0,walkSheet.getWidth()/4,walkSheet.getHeight()),156,246);
         if(args.length>0){
             world.reset();
             new File(args[0]).mkdirs();
@@ -72,7 +75,7 @@ public final class WorldTests {
             Graphics2D g=full.createGraphics();world.draw(g,0,()->{},false);g.dispose();ImageIO.write(full,"png",new File(args[0],"map-complete.png"));
             double[][] views={{2200,1500},{3100,850},{3900,1850},{900,1500},{850,600},{1250,2420},{800,850}};
             String[] names={"depart","base","tranchees","village","foret","pont","clairiere"};
-            BufferedImage sheet=Sprites.read("/assets/hero.png");
+            BufferedImage sheet=Sprites.read("/assets/hero-v2.png");
             BufferedImage hero=Sprites.prepare(sheet.getSubimage(0,0,sheet.getWidth()/4,sheet.getHeight()),156,246);
             for(int i=0;i<views.length;i++){
                 BufferedImage view=new BufferedImage(1440,900,BufferedImage.TYPE_INT_RGB);
