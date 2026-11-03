@@ -32,6 +32,6 @@ public final class MapEntity {
     public void reset(){if(isChest()){opened=false;type=AssetType.CHEST;}}
     public void draw(Graphics2D g){
         try{BufferedImage image=sprites.get(type);g.drawImage(image,(int)Math.round(x-type.width/2.0),
-            (int)Math.round(y-type.height),null);}catch(IOException e){throw new IllegalStateException(e);}
+            (int)Math.round(y-type.height),type.width,type.height,null);}catch(IOException e){throw new IllegalStateException(e);}
     }
 }

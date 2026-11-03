@@ -2,6 +2,10 @@ package world;
 
 
 public enum AssetType {
+    TREE_JOEL("vegetation/arbre-joel.png",100,140,"tree"),
+    TREE_THOMAS("vegetation/arbre-thomas.png",100,140,"tree"),
+    TRENCH("obstacles/tranchee-module.png",150,45,"ground"),
+    BUSH("vegetation/buisson-aubepine.png",52,30,"prop"),
     PINE_D1("vegetation/sapin_taille1_sombre.png",42,60,"tree"),
     PINE_D2("vegetation/sapin_taille2_sombre.png",50,75,"tree"),
     PINE_D3("vegetation/sapin_taille3_sombre.png",60,90,"tree"),
@@ -30,25 +34,25 @@ public enum AssetType {
     BARREL("objets/fut_carburant.png",21,31,"prop"),
     LOGS("objets/pile_de_rondins.png",62,29,"prop"),
     AMMO("objets/caisse_munitions.png",30,25,"prop"),
-    WRECK("vehicules/char_detruit.png",100,56,"prop"),
-    TANK("vehicules/char_intact.png",100,58,"prop"),
+    WRECK("vehicules/char_detruit.png",160,90,"prop"),
+    TANK("vehicules/char-intact-v2.png",160,95,"prop"),
     GUN("vehicules/canon_artillerie.png",68,46,"prop"),
-    SHELTER("batiments/abri_metal.png",90,56,"building"),
-    BARRACK_LARGE("batiments/baraquement_grand.png",122,89,"building"),
-    BARRACK_SMALL("batiments/baraquement_petit.png",86,72,"building"),
+    SHELTER("batiments/abri-metal-v2.png",140,90,"building"),
+    BARRACK_LARGE("batiments/baraquement-grand-v2.png",200,150,"building"),
+    BARRACK_SMALL("batiments/baraquement-petit-v2.png",160,120,"building"),
     PERIMETER_H("batiments/palissade_enceinte_horizontale_260.png",92,29,"fence"),
     PERIMETER_V("batiments/palissade_enceinte_verticale_145.png",18,106,"vertical"),
-    BRIDGE("batiments/pont_bois.png",72,106,"ground"),
-    RUIN("batiments/ferme_en_ruine.png",132,94,"building"),
-    CABIN("batiments/cabane_brulee.png",82,72,"building"),
-    CHEST("../coffres/caisse-HUGO-fermee.png",42,32,"prop"),
-    OPEN_CHEST("../coffres/caisse-HUGO-ouverte.png",42,46,"prop");
+    BRIDGE("batiments/pont_bois.png",80,106,"ground"),
+    RUIN("batiments/ferme-en-ruine-v2.png",210,150,"building"),
+    CABIN("batiments/cabane-brulee-v2.png",140,120,"building"),
+    CHEST("../coffres/caisse-HUGO-fermee-v2.png",56,40,"prop"),
+    OPEN_CHEST("../coffres/caisse-HUGO-ouverte-v2.png",56,56,"prop");
 
     public final String path;
     public final int width,height;
     public final String footprint;
     AssetType(String path,int width,int height,String footprint){
         this.path=path.startsWith("../")?"/assets/"+path.substring(3):"/assets/decor/"+path;
-        this.width=width;this.height=height;this.footprint=footprint;
+        this.width=width*2;this.height=height*2;this.footprint=footprint;
     }
 }

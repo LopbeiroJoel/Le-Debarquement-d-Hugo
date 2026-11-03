@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Lancer le jeu",
+      "request": "launch",
+      "mainClass": "Main",
+      "classPaths": [
+        "${workspaceFolder}/build",
+        "${workspaceFolder}/src/main/resources"
+      ],
+      "preLaunchTask": "Compiler",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
