@@ -1,6 +1,10 @@
-# Le DÃƒÂ©barquement dÃ¢â‚¬â„¢Hugo
+# Le Débarquement d’Hugo
 
-Prototype Java 2D de JoÃƒÂ«l et Thomas. Le dÃƒÂ©veloppement de la map se trouve sur `map-entites-collisions`. `main` conserve la structure initiale.
+Jeu Java 2D de Joël et Thomas.
+
+- `MAP` : la nouvelle map et ses décors, avec Hugo jouable.
+- `PERSONNAGE-PRINCIPAL` : part de `MAP` et ajoute le nouveau Hugo en pixel art HD, avec son visage et ses quatre poses de marche.
+- `main` : structure initiale.
 
 ## Lancer dans Ubuntu / VS Code
 
@@ -9,37 +13,37 @@ cd ~/projects/Le-Debarquement-d-Hugo
 sh run.sh
 ```
 
-Un JDK et le JRE avec affichage graphique sont nÃƒÂ©cessaires. La version headless seule ne permet pas dÃ¢â‚¬â„¢ouvrir le jeu. Sur cette machine, la bibliothÃƒÂ¨que graphique est fournie par `openjdk-25-jre` et WSLg.
+Le JDK et la version graphique du JRE doivent être installés. La version headless seule ne permet pas d’ouvrir le jeu. Cette machine utilise `openjdk-25-jre` avec WSLg.
 
 ## Commandes
 
-- ZQSD, WASD ou flÃƒÂ¨ches : dÃƒÂ©placement.
+- ZQSD, WASD ou flèches : déplacement.
 - Molette ou + / - : zoom.
 - M : afficher ou masquer la carte.
-- P ou Ãƒâ€°chap : pause.
-- R : retour au dÃƒÂ©part et rÃƒÂ©initialisation des caisses.
-- F1 : afficher les collisions et les coordonnÃƒÂ©es.
+- P ou Échap : pause.
+- R : retour au départ et réinitialisation des caisses.
+- F1 : collisions et coordonnées.
 
-## La map
+## Le monde
 
-Le monde mesure 4 608 Ãƒâ€” 3 200 unitÃƒÂ©s, environ neuf fois la surface du premier prototype. Il comprend une forÃƒÂªt au nord, un village dÃƒÂ©truit, une base militaire clÃƒÂ´turÃƒÂ©e, des tranchÃƒÂ©es, une riviÃƒÂ¨re avec deux ponts et une batterie dÃ¢â‚¬â„¢artillerie au sud. Le bocage relie ces zones. Une clairière au nord-ouest accueille les deux arbres personnalisés de Joël et Thomas. La silhouette entière des arbres et des buissons est exclue des routes.
+La map mesure 4 608 × 3 200 unités, environ neuf fois la surface du premier prototype : forêt au nord, village en ruine, base militaire clôturée, tranchées, rivière avec deux ponts et batterie d’artillerie au sud. Le bocage relie les zones.
 
-Les dÃƒÂ©cors sont des entitÃƒÂ©s indÃƒÂ©pendantes. Le sol, les routes, les berges et les textures des diffÃƒÂ©rentes zones sont composÃƒÂ©s sÃƒÂ©parÃƒÂ©ment. Les obstacles utilisent des collisions rectangulaires ajustables ; les rives suivent la forme de lÃ¢â‚¬â„¢eau et les passages sur les ponts restent ouverts.
+Une clairière au nord-ouest accueille les arbres personnalisés de Joël (650, 850) et Thomas (950, 850). Le chemin forestier y mène. Aucune silhouette d’arbre ou de buisson ne recouvre les routes.
 
-Les PNG conservent leur rÃƒÂ©solution source. Le cache des sprites conserve trois pixels par unitÃƒÂ© du monde, au lieu de rÃƒÂ©duire les images ÃƒÂ  une minuscule texture avant de zoomer. Le rendu ÃƒÂ  lÃ¢â‚¬â„¢ÃƒÂ©cran utilise le plus proche voisin pour garder un aspect pixel art net. La camÃƒÂ©ra est limitÃƒÂ©e pour prÃƒÂ©server la lisibilitÃƒÂ©.
+Les éléments du décor sont indépendants. Les sols, routes et berges sont composés séparément. Les obstacles ont des collisions rectangulaires ajustables ; les rives suivent la forme de la rivière et les deux ponts restent traversables.
 
-Hugo dispose dÃ¢â‚¬â„¢un sprite de prÃƒÂ©sentation fixe. Les tirs, les ennemis, les effets des bonus et lÃ¢â‚¬â„¢animation du personnage restent ÃƒÂ  intÃƒÂ©grer par Thomas. Une caisse dÃƒÂ©clenche une seule fois le callback `GameMap.setChestListener` ; ce callback ne donne pas encore de bonus.
+Les PNG gardent leur résolution source. Le cache conserve trois pixels par unité de jeu, et le rendu à l’écran utilise le plus proche voisin pour un pixel art net. Les maisons et les chars ont été redimensionnés par rapport à Hugo.
 
-## VÃƒÂ©rification
+Hugo dispose de quatre poses de marche et d’une orientation gauche/droite. Les tirs, les ennemis et les effets des bonus restent à intégrer par Thomas. Les caisses déclenchent une seule fois `GameMap.setChestListener` sans donner encore de bonus.
+
+## Vérification
 
 ```bash
 sh test.sh
 ```
 
-Les tests vÃƒÂ©rifient les limites, les collisions, les deux ponts, lÃ¢â‚¬â„¢accÃƒÂ¨s aux six caisses depuis le dÃƒÂ©part, les ÃƒÂ©vÃƒÂ©nements dÃ¢â‚¬â„¢ouverture, le reset, la camÃƒÂ©ra et la prÃƒÂ©sence des dÃƒÂ©cors.
+Les tests couvrent les limites, collisions, accès aux six caisses depuis le départ, ponts, reset, caméra, présence des assets, accès à la clairière et absence de végétation sur les routes.
 
-## RÃƒÂ©partition
+Joël : map, décors, collisions, caméra et interface. Thomas : personnage, tirs, XP et améliorations.
 
-JoÃƒÂ«l : map, dÃƒÂ©cor, collisions, camÃƒÂ©ra et interface. Thomas : personnage, tirs, XP et amÃƒÂ©liorations.
-
-Les prompts des nouveaux assets crÃƒÂ©ÃƒÂ©s avec lÃ¢â‚¬â„¢outil image_gen intÃƒÂ©grÃƒÂ© sont conservÃƒÂ©s dans `docs/asset-prompts.json`.
+Les prompts des images créées avec l’outil image_gen intégré sont dans `docs/asset-prompts.json`.
