@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
 import java.util.ArrayList;
@@ -18,8 +20,8 @@ public final class MapRenderer implements Disposable {
     private final Sprites sprites=new Sprites();
     private final List<TextureRegion> tiles=new ArrayList<>();
     private final ShapeRenderer shapes=new ShapeRenderer();
-    public final Texture overview;
-    private final Texture shadow;
+    public final TextureRegion overview;
+    private final FrameBuffer overviewTarget;
     private final Rectangle view=new Rectangle();
 
     public MapRenderer(GameMap world){
@@ -30,10 +32,12 @@ public final class MapRenderer implements Disposable {
             TextureRegion region=new TextureRegion(t);region.flip(false,true);tiles.add(region);
         }
         for(AssetType type:AssetType.values())sprites.get(type);
-        overview=new Texture(Gdx.files.internal("render/overview.png"));
-        Pixmap ellipse=new Pixmap(96,24,Pixmap.Format.RGBA8888);ellipse.setColor(1,1,1,1);
-        for(int y=0;y<24;y++)for(int x=0;x<96;x++)if(Math.pow((x-48)/48.0,2)+Math.pow((y-12)/12.0,2)<1)ellipse.drawPixel(x,y);
-        shadow=new Texture(ellipse);ellipse.dispose();
+        overviewTarget=new FrameBuffer(Pixmap.Format.RGBA8888,460,320,false);
+        OrthographicCamera previewCamera=new OrthographicCamera();previewCamera.setToOrtho(true,world.width,world.height);
+        SpriteBatch previewBatch=new SpriteBatch();overviewTarget.begin();ScreenUtils.clear(0,0,0,1);
+        draw(previewBatch,previewCamera,0,()->{});overviewTarget.end();previewBatch.dispose();
+        overview=new TextureRegion(overviewTarget.getColorBufferTexture());overview.flip(false,true);
+
     }
     public void draw(SpriteBatch batch,OrthographicCamera camera,float actorY,Runnable drawActor){
         float w=camera.viewportWidth*camera.zoom,h=camera.viewportHeight*camera.zoom;
@@ -45,11 +49,7 @@ public final class MapRenderer implements Disposable {
             if(view.overlaps(new Rectangle(x,y,tile.getRegionWidth(),tile.getRegionHeight())))batch.draw(tile,x,y);
         }
         for(MapEntity e:world.getEntities())if(e.ground&&visible(e))drawEntity(batch,e);
-        for(MapEntity e:world.getEntities())if(!e.ground&&visible(e)){
-            int size=e.getType().width;
-            batch.setColor(15/255f,24/255f,19/255f,e.getType().footprint.equals("tree")?48/255f:32/255f);
-            batch.draw(shadow,e.x-size/3f,e.y-8,size*3/4f,17);
-        }
+        for(MapEntity e:world.getEntities())if(!e.ground&&visible(e))drawShadow(batch,e);
         batch.setColor(Color.WHITE);boolean drawn=false;
         for(MapEntity e:world.getEntities())if(!e.ground){
             if(!drawn&&actorY<e.y){drawActor.run();drawn=true;}
@@ -57,7 +57,16 @@ public final class MapRenderer implements Disposable {
         }
         if(!drawn)drawActor.run();batch.end();
     }
-    private boolean visible(MapEntity e){AssetType t=e.getType();return view.overlaps(new Rectangle(e.x-t.width/2f,e.y-t.height,t.width,t.height+20));}
+    private void drawShadow(SpriteBatch batch,MapEntity e){
+        AssetType type=e.getType();Sprites.GroundShadow shadow=sprites.shadow(type);
+        float x=e.x-type.width/2f,y=e.y-type.height;
+        batch.setColor(.10f,.13f,.09f,type.footprint.equals("tree")?.20f:.25f);
+        batch.draw(shadow.cast,x,y,shadow.width,shadow.height);
+        batch.setColor(.07f,.09f,.055f,.38f);
+        batch.draw(shadow.contact,x,y,shadow.width,shadow.height);
+        batch.setColor(Color.WHITE);
+    }
+    private boolean visible(MapEntity e){AssetType t=e.getType();return view.overlaps(new Rectangle(e.x-t.width/2f,e.y-t.height,t.width+t.height*.25f,t.height+t.height*.35f));}
     private void drawEntity(SpriteBatch batch,MapEntity e){AssetType t=e.getType();batch.draw(sprites.get(t),e.x-t.width/2f,e.y-t.height,t.width,t.height);}
     public void drawCollisions(OrthographicCamera camera){
         shapes.setProjectionMatrix(camera.combined);shapes.begin(ShapeRenderer.ShapeType.Line);shapes.setColor(1,.25f,.2f,1);
@@ -67,5 +76,5 @@ public final class MapRenderer implements Disposable {
         shapes.end();
     }
     private void rect(Rectangle r){shapes.rect(r.x,r.y,r.width,r.height);}
-    public void dispose(){for(TextureRegion tile:tiles)tile.getTexture().dispose();sprites.dispose();overview.dispose();shadow.dispose();shapes.dispose();}
+    public void dispose(){for(TextureRegion tile:tiles)tile.getTexture().dispose();sprites.dispose();overviewTarget.dispose();shapes.dispose();}
 }

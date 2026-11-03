@@ -38,14 +38,14 @@ La caméra ne représente pas un joueur et ne déclenche pas les caisses.
 - `world/MapEntity.java` : un objet indépendant du décor.
 - `world/MapRenderer.java` : rendu OpenGL avec SpriteBatch et affichage des collisions.
 - `world/Sprites.java` : textures avec filtrage Nearest pour garder le pixel art net.
-- `src/main/resources/maps/world.json` : positions des 860 objets, zones et géométrie des routes et de la rivière.
+- `src/main/resources/maps/world.json` : positions des 854 objets, zones et géométrie des routes et de la rivière.
 - `src/main/resources/render/ground/` : sol seul, en tuiles de 1 024 pixels maximum.
 - `src/main/resources/render/sprites/` : sprites préparés pour le rendu, sans agrandissement artificiel des sources.
 - `src/main/resources/assets/` : PNG sources conservés, dont les assets d’Hugo.
 
 La map mesure 4 608 × 3 200 unités. Elle comporte la forêt, le village détruit, la base militaire, les tranchées, la rivière avec deux ponts et la batterie d’artillerie. Les arbres de Joël et Thomas sont dans la clairière au nord-ouest, en 650, 850 et 950, 850. Aucune silhouette d’arbre ou de buisson ne recouvre une route.
 
-Le sol préparé ne contient pas les objets : chaque décor reste modifiable et possède sa propre collision. Les modèles et les tests utilisent la géométrie libGDX et fonctionnent sans fenêtre OpenGL.
+Les ombres au sol suivent le contour inférieur réel des objets pour éviter tout effet de flottement. Le sol préparé ne contient pas les objets : chaque décor reste modifiable et possède sa propre collision. Les modèles et les tests utilisent la géométrie libGDX et fonctionnent sans fenêtre OpenGL.
 
 ## Intégration du personnage par Thomas
 
@@ -61,9 +61,17 @@ Thomas peut ajouter son personnage dans la boucle de `MapGame`, appeler `GameMap
 sh run.sh --args=--smoke-test
 ```
 
-Ce contrôle ouvre une vraie fenêtre libGDX, charge toutes les textures, rend 30 images, écrit `build/libgdx-smoke.png` et ferme la fenêtre. Il a été exécuté avec succès sur Ubuntu ARM64.
+Ce contrôle ouvre une vraie fenêtre libGDX, charge toutes les textures, rend 90 images dans trois zones, écrit `build/libgdx-smoke.png`, `build/libgdx-base.png` et `build/libgdx-tranchees.png` et ferme la fenêtre. Il a été exécuté avec succès sur Ubuntu ARM64.
 
 Versions : libGDX 1.14.2, LWJGL 3.4.3, Gradle 9.2.1. Le wrapper vérifie le SHA-256 de la distribution Gradle. La version de LWJGL est adaptée à Java 25.
 
 Références : [documentation libGDX](https://libgdx.com/wiki/start/project-generation), [compatibilité du lanceur officiel](https://github.com/libgdx/gdx-liftoff).
 Les prompts des visuels restent dans `docs/asset-prompts.json`.
+
+## Relief des décors
+
+Les rondins, obstacles métalliques en croix, tonneaux, caisses, canons, barricades et coffres HUGO ont des sources pixel art HD v3. Les ombres portées sont calculées depuis leur silhouette et complétées par une ombre de contact au sol. Leur direction correspond à la lumière venant du haut à gauche.
+
+Les six palissades verticales sur les côtés du camp ont été retirées, avec leurs collisions. La petite carte est reconstruite depuis les objets actuels, sans conserver les anciennes barrières.
+
+Les prompts de ces nouveaux visuels sont dans `docs/assets-depth-prompts.json`. Les autres sources et anciens visuels sont conservés.

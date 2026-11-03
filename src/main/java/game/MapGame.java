@@ -41,6 +41,8 @@ public final class MapGame extends ApplicationAdapter {
     }
     private boolean held(int...keys){for(int key:keys)if(Gdx.input.isKeyPressed(key))return true;return false;}
     public void render(){
+        if(smoke&&frames==30){viewX=3100;viewY=850;}
+        if(smoke&&frames==60){viewX=3900;viewY=1850;}
         double dt=Math.min(.05,Gdx.graphics.getDeltaTime());
         double dx=(held(Input.Keys.D,Input.Keys.RIGHT)?1:0)-(held(Input.Keys.Q,Input.Keys.A,Input.Keys.LEFT)?1:0);
         double dy=(held(Input.Keys.S,Input.Keys.DOWN)?1:0)-(held(Input.Keys.Z,Input.Keys.W,Input.Keys.UP)?1:0);
@@ -58,10 +60,10 @@ public final class MapGame extends ApplicationAdapter {
         ScreenUtils.clear(.04f,.07f,.05f,1);
         renderer.draw(batch,scene,0,()->{});if(debug)renderer.drawCollisions(scene);
         drawHud();
-        if(smoke&&++frames==30){
+        if(smoke&&(++frames==30||frames==60||frames==90)){
             Pixmap screenshot=Pixmap.createFromFrameBuffer(0,0,Gdx.graphics.getBackBufferWidth(),Gdx.graphics.getBackBufferHeight());
-            PixmapIO.writePNG(Gdx.files.local("build/libgdx-smoke.png"),screenshot,-1,true);screenshot.dispose();
-            Gdx.app.log("Verification","libGDX : "+world.entityCount()+" objets, rendu OpenGL, 30 images sans erreur");Gdx.app.exit();
+            PixmapIO.writePNG(Gdx.files.local(frames==30?"build/libgdx-smoke.png":frames==60?"build/libgdx-base.png":"build/libgdx-tranchees.png"),screenshot,-1,true);screenshot.dispose();
+            Gdx.app.log("Verification","libGDX : "+world.entityCount()+" objets, rendu OpenGL, "+frames+" images sans erreur");if(frames==90)Gdx.app.exit();
         }
     }
     private void drawHud(){
