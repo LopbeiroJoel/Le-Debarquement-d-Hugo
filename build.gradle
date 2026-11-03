@@ -1,0 +1,50 @@
+plugins {
+    id 'application'
+}
+repositories {
+    mavenCentral()
+}
+def gdxVersion = '1.14.2'
+def lwjglVersion = '3.4.3'
+def os = System.getProperty('os.name').toLowerCase()
+def arm = System.getProperty('os.arch').toLowerCase().contains('aarch64') || System.getProperty('os.arch').toLowerCase().contains('arm64')
+def natives = os.contains('linux') ? (arm ? 'natives-linux-arm64' : 'natives-linux') : os.contains('mac') ? (arm ? 'natives-macos-arm64' : 'natives-macos') : 'natives-windows'
+dependencies {
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    runtimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    ['lwjgl', 'lwjgl-glfw', 'lwjgl-jemalloc', 'lwjgl-openal', 'lwjgl-opengl', 'lwjgl-stb'].each {
+        runtimeOnly "org.lwjgl:$it:$lwjglVersion:$natives"
+    }
+}
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == 'org.lwjgl') useVersion lwjglVersion
+    }
+}
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+application {
+    mainClass = 'Main'
+    applicationDefaultJvmArgs = ['--enable-native-access=ALL-UNNAMED'] + (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_25) ? ['--sun-misc-unsafe-memory-access=deny'] : [])
+}
+tasks.register('worldTests', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'world.WorldTests'
+    maxHeapSize = '512m'
+}
+tasks.named('check') {
+    dependsOn worldTests
+}
+
+tasks.named('test') {
+    dependsOn worldTests
+    enabled = false
+}
