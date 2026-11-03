@@ -18,6 +18,12 @@
       "type": "shell",
       "command": "sh run.sh",
       "problemMatcher": []
+    },
+    {
+      "label": "Tester",
+      "type": "shell",
+      "command": "sh test.sh",
+      "problemMatcher": []
     }
   ]
 }
