@@ -12,3 +12,18 @@ dependencies {
 jar {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+
+tasks.register('worldTests', JavaExec) {
+  dependsOn testClasses
+  classpath = sourceSets.test.runtimeClasspath + files(rootProject.file('assets'))
+  mainClass = 'hugo.epitech.world.WorldTests'
+  maxHeapSize = '512m'
+}
+tasks.named('test') {
+  dependsOn worldTests
+  failOnNoDiscoveredTests = false
+}
+tasks.named('check') {
+  dependsOn worldTests
+}

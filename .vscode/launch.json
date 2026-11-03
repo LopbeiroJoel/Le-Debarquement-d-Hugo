@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Lancer le jeu libGDX",
+      "request": "launch",
+      "mainClass": "hugo.epitech.lwjgl3.Lwjgl3Launcher",
+      "cwd": "${workspaceFolder}/assets",
+      "vmArgs": "--enable-native-access=ALL-UNNAMED --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED"
+    }
+  ]
+}

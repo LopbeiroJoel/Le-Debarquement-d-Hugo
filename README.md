@@ -14,7 +14,37 @@ Jeu 2D (survivor-like) en Java avec libGDX, développé par Joël et Thomas.
 - **Joël** : monde, décor, collisions, caméra et interface.
 - **Thomas** : personnage, tirs, statistiques et améliorations.
 
-La map est développée sur la branche `map-entites-collisions`.
+La map est maintenant portée sur `map-libgdx`, créée depuis le nouveau `main` de Thomas (`fee883c`). Les anciennes branches sont conservées pour historique.
+
+## Tester la map
+
+```bash
+git fetch origin
+git switch map-libgdx
+git pull --ff-only
+./gradlew lwjgl3:run
+```
+
+Sur `main`, la base de Thomas affiche encore son écran initial. Sur `map-libgdx`, la même application affiche la map.
+
+- ZQSD, WASD ou flèches : caméra libre.
+- Molette ou + / - : zoom.
+- M : petite carte.
+- R : retour au départ.
+- F1 : collisions.
+
+Hugo reste à coder par Thomas. Ses sprites sont disponibles dans `assets/hero-v2.png`. Les éléments de décor restent indépendants ; la map conserve ses collisions, ses deux ponts, ses six caisses et les arbres personnalisés.
+
+## Vérifier le portage
+
+```bash
+./gradlew core:check
+./gradlew lwjgl3:run --args=--smoke-test
+```
+
+Le second contrôle ouvre une vraie fenêtre, rend 90 images sur trois zones, puis ferme l’application. Les captures sont enregistrées dans `lwjgl3/build/smoke/`.
+
+Voir `docs/INTEGRATION-LIBGDX.md` pour l’organisation du code et les points de branchement du personnage.
 
 ---
 
