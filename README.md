@@ -20,7 +20,6 @@ Le JDK et la version graphique du JRE doivent être installés. La version headl
 - ZQSD, WASD ou flèches : déplacement.
 - Molette ou + / - : zoom.
 - M : afficher ou masquer la carte.
-- P ou Échap : pause.
 - R : retour au départ et réinitialisation des caisses.
 - F1 : collisions et coordonnées.
 
