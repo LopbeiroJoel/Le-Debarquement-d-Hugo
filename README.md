@@ -44,8 +44,6 @@ Hugo reste à coder par Thomas. Ses sprites sont disponibles dans `assets/hero-v
 
 Le second contrôle ouvre une vraie fenêtre, rend 90 images sur trois zones, puis ferme l’application. Les captures sont enregistrées dans `lwjgl3/build/smoke/`.
 
-Voir `docs/INTEGRATION-LIBGDX.md` pour l’organisation du code et les points de branchement du personnage.
-
 ---
 
 A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
