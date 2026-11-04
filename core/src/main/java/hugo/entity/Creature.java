@@ -10,30 +10,42 @@ public abstract class Creature implements Entity {
     protected float x;
     protected float y;
     protected Life life;
-    protected float speed;
+    protected Stat speed;
     protected float width, height;
-    protected float attackRange;
-    protected float attackDamage;
+    protected Stat attackRange;
+    protected Stat attackDamage;
     protected float dirX, dirY;
     private final Rectangle hitbox = new Rectangle();
     private final float hitboxSize;
 
-    public Creature(Texture sprite, float x, float y, float maxLife, float speed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
+    public Creature(Texture sprite, float x, float y, float maxLife, float baseSpeed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
         this.sprite = sprite;
         this.x = x;
         this.y = y;
         this.life = new Life(maxLife);
-        this.speed = speed;
+        this.speed = new Stat(baseSpeed);
         this.width = width;
         this.height = height;
-        this.attackRange = attackRange;
-        this.attackDamage = attackDamage;
+        this.attackRange = new Stat(attackRange);
+        this.attackDamage = new Stat(attackDamage);
         this.hitboxSize = hitboxSize;
 
     }
 
     public Life getLife() {
         return life;
+    }
+
+    public Stat getSpeed() {
+        return speed;
+    }
+
+    public Stat getAttackRange() {
+        return attackRange;
+    }
+
+    public Stat getAttackDamage() {
+        return attackDamage;
     }
 
     public void setDirection(float dirX, float dirY) {
@@ -62,8 +74,8 @@ public abstract class Creature implements Entity {
 
     @Override
     public void update(float deltaTime) {
-        this.x += dirX * speed * deltaTime;
-        this.y += dirY * speed * deltaTime;
+        this.x += dirX * speed.getValue() * deltaTime;
+        this.y += dirY * speed.getValue() * deltaTime;
     }
 
     @Override
