@@ -7,6 +7,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class MobLvl1 extends Mob {
 
+    public static final int SPRITE_WIDTH = 65;
+    public static final int SPRITE_HEIGHT = 86;
+
     private final Animation<TextureRegion> walkAnimation;
     private final Animation<TextureRegion> attackAnimation;
     private final TextureRegion idleFrame;
@@ -17,7 +20,7 @@ public class MobLvl1 extends Mob {
     private boolean facingLeft = false;
 
     public MobLvl1(Texture texture, float x, float y) {
-        super(texture, x, y, 10, 20, 48, 64, 5);
+        super(texture, x, y, 10, 20, SPRITE_WIDTH, SPRITE_HEIGHT, 5);
 
         if (texture.getWidth() % 4 != 0 || texture.getHeight() % 2 != 0) {
             throw new IllegalArgumentException("Expected a 4-column, 2-row sprite sheet");

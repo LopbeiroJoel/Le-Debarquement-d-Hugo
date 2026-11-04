@@ -104,16 +104,16 @@ public final class EcranCarte extends ScreenAdapter {
             return;
         }
 
-        mobTexture = new Texture(Gdx.files.internal(MOB_TEXTURE_PATH));
+        mobTexture = new Texture(Gdx.files.internal(MOB_TEXTURE_PATH), true);
         mobTexture.setFilter(
-            Texture.TextureFilter.Nearest,
+            Texture.TextureFilter.MipMapLinearNearest,
             Texture.TextureFilter.Nearest
         );
 
         mob = new MobLvl1(
             mobTexture,
-            CarteJeu.SPAWN_X - 24,
-            CarteJeu.SPAWN_Y - 64
+            CarteJeu.SPAWN_X - MobLvl1.SPRITE_WIDTH / 2f,
+            CarteJeu.SPAWN_Y - MobLvl1.SPRITE_HEIGHT
         );
 
         Gdx.app.log("Mob", "Asset charge : " + MOB_TEXTURE_PATH);
