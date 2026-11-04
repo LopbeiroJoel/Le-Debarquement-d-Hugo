@@ -7,8 +7,8 @@ Jeu 2D (survivor-like) en Java avec libGDX, développé par Joël et Thomas.
 - VS Code + extension « Extension Pack for Java »
 
 ## Lancer le jeu
-- macOS / Linux / WSL : `./gradlew lwjgl3:run`
-- Windows : `gradlew.bat lwjgl3:run`
+- macOS / Linux / WSL : `./gradlew hugo:run`
+- Windows : `gradlew.bat hugo:run`
 
 ## Répartition
 - **Joël** : monde, décor, collisions, caméra et interface.
@@ -22,7 +22,7 @@ La map est intégrée dans `main`. Le code de la carte est regroupé dans `core/
 git fetch origin
 git switch main
 git pull --ff-only
-./gradlew lwjgl3:run
+./gradlew hugo:run
 ```
 
 Le jeu ouvre la map avec une caméra libre.
@@ -39,10 +39,10 @@ Hugo reste à coder par Thomas. Ses sprites sont disponibles dans `assets/hero-v
 
 ```bash
 ./gradlew core:check
-./gradlew lwjgl3:run --args=--smoke-test
+./gradlew hugo:run --args=--smoke-test
 ```
 
-Le second contrôle ouvre une vraie fenêtre, rend 90 images sur trois zones, puis ferme l’application. Les captures sont enregistrées dans `lwjgl3/build/smoke/`.
+Le second contrôle ouvre une vraie fenêtre, rend 90 images sur trois zones, puis ferme l’application. Les captures sont enregistrées dans `hugo/build/smoke/`.
 
 ---
 
@@ -53,7 +53,7 @@ This project was generated with a template including simple application launcher
 ## Platforms
 
 - `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
+- `hugo`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
 
 ## Gradle
 
@@ -71,8 +71,8 @@ Useful Gradle tasks and flags:
 - `clean`: removes `build` folders, which store compiled classes and built archives.
 - `eclipse`: generates Eclipse project data.
 - `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
+- `hugo:jar`: builds application's runnable jar, which can be found at `hugo/build/libs`.
+- `hugo:run`: starts the application.
 - `test`: runs unit tests (if any).
 
 Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.

@@ -4,7 +4,7 @@
     {
       "label": "Compiler",
       "type": "shell",
-      "command": "./gradlew core:classes lwjgl3:classes",
+      "command": "./gradlew core:classes hugo:classes",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -16,7 +16,7 @@
     {
       "label": "Lancer",
       "type": "shell",
-      "command": "./gradlew lwjgl3:run",
+      "command": "./gradlew hugo:run",
       "problemMatcher": []
     },
     {
