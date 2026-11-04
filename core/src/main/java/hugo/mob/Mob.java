@@ -39,7 +39,7 @@ public abstract class Mob extends Creature {
     }
 
     public void follow(Rectangle hugoHitbox) {
-        if (hugoHitbox == null || life <= 0) {
+        if (hugoHitbox == null || getLife().isDead()) {
             setDirection(0, 0); // pas de Hugo ou mob mort
             return;
         }
