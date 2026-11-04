@@ -1,14 +1,14 @@
-package hugo.epitech.world;
+package hugo.map;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.JsonValue;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class MapArea {
+public final class ZoneCarte {
     public final List<float[]> polygons=new ArrayList<>();
     private final Rectangle bounds=new Rectangle();
-    public MapArea(JsonValue value){
+    public ZoneCarte(JsonValue value){
         float left=Float.POSITIVE_INFINITY,top=left,right=Float.NEGATIVE_INFINITY,bottom=right;
         for(JsonValue part=value.child;part!=null;part=part.next){
             float[] points=part.asFloatArray();polygons.add(points);

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 // Note, the above license and copyright applies to this file only.
-package hugo.epitech.lwjgl3;
+package hugo.bureau;
 
 import com.badlogic.gdx.Version;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3NativesLoader;
@@ -44,9 +44,9 @@ import java.util.Locale;
  * <a href="https://jvm-gaming.org/t/starting-jvm-on-mac-with-xstartonfirstthread-programmatically/57547">Based on this java-gaming.org post by kappa</a>
  * @author damios
  */
-public class StartupHelper {
+public class AideDemarrage {
 
-	private StartupHelper() {}
+	private AideDemarrage() {}
 
 	private static final String JVM_RESTARTED_ARG = "jvmIsRestarted";
 
@@ -63,7 +63,7 @@ public class StartupHelper {
 	}
 
 	/**
-	 * Applies the utilities as described by {@link StartupHelper}'s Javadoc.
+	 * Applies the utilities as described by {@link AideDemarrage}'s Javadoc.
 	 * <p>
 	 * All {@link System#getenv() Environment Variables} are copied to the child JVM process (if it is spawned), as
 	 * specified by {@link ProcessBuilder#environment()}; the same applies for
@@ -72,7 +72,7 @@ public class StartupHelper {
 	 * <b>Usage:</b>
 	 * <pre><code>
 	 * public static void main(String[] args) {
-	 * 	 if (StartupHelper.startNewJvmIfRequired()) return;
+	 * 	 if (AideDemarrage.startNewJvmIfRequired()) return;
 	 * 	 // ... The rest of main() goes here, as normal.
 	 * }
 	 * </code></pre>
@@ -83,7 +83,7 @@ public class StartupHelper {
 	}
 
 	/**
-	 * Applies the utilities as described by {@link StartupHelper}'s Javadoc.
+	 * Applies the utilities as described by {@link AideDemarrage}'s Javadoc.
 	 * <p>
 	 * All {@link System#getenv() Environment Variables} are copied to the child JVM process (if it is spawned), as
 	 * specified by {@link ProcessBuilder#environment()}; the same applies for
@@ -93,7 +93,7 @@ public class StartupHelper {
 	 * <pre><code>
 	 * public static void main(String[] args) {
 	 *   // The parameter on the next line could instead be false if you don't want to inherit IO.
-	 * 	 if (StartupHelper.startNewJvmIfRequired(true)) return;
+	 * 	 if (AideDemarrage.startNewJvmIfRequired(true)) return;
 	 * 	 // ... The rest of main() goes here, as normal.
 	 * }
 	 * </code></pre>
@@ -130,7 +130,7 @@ public class StartupHelper {
 
 	private static final String MAC_JRE_ERR_MSG = "A Java installation could not be found. If you are distributing this app with a bundled JRE, be sure to set the '-XstartOnFirstThread' argument manually!";
 	private static final String LINUX_JRE_ERR_MSG = "A Java installation could not be found. If you are distributing this app with a bundled JRE, be sure to set the environment variable '__GL_THREADED_OPTIMIZATIONS' to '0'!";
-	private static final String CHILD_LOOP_ERR_MSG = "The current JVM process is a spawned child JVM process, but StartupHelper has attempted to spawn another child JVM process! This is a broken state, and should not normally happen! Your game may crash or not function properly!";
+	private static final String CHILD_LOOP_ERR_MSG = "The current JVM process is a spawned child JVM process, but AideDemarrage has attempted to spawn another child JVM process! This is a broken state, and should not normally happen! Your game may crash or not function properly!";
 
 	/**
 	 * Spawns a child JVM process if on macOS, or on Linux with NVIDIA drivers.

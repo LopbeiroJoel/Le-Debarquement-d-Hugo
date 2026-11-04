@@ -14,18 +14,18 @@ Jeu 2D (survivor-like) en Java avec libGDX, développé par Joël et Thomas.
 - **Joël** : monde, décor, collisions, caméra et interface.
 - **Thomas** : personnage, tirs, statistiques et améliorations.
 
-La map est maintenant portée sur `map-libgdx`, créée depuis le nouveau `main` de Thomas (`fee883c`). Les anciennes branches sont conservées pour historique.
+La map est intégrée dans `main`. Le code de la carte est regroupé dans `core/src/main/java/hugo/map/`.
 
 ## Tester la map
 
 ```bash
 git fetch origin
-git switch map-libgdx
+git switch main
 git pull --ff-only
 ./gradlew lwjgl3:run
 ```
 
-Sur `main`, la base de Thomas affiche encore son écran initial. Sur `map-libgdx`, la même application affiche la map.
+Le jeu ouvre la map avec une caméra libre.
 
 - ZQSD, WASD ou flèches : caméra libre.
 - Molette ou + / - : zoom.

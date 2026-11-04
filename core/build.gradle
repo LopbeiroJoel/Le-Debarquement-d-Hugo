@@ -14,16 +14,16 @@ jar {
 }
 
 
-tasks.register('worldTests', JavaExec) {
+tasks.register('verifierCarte', JavaExec) {
   dependsOn testClasses
   classpath = sourceSets.test.runtimeClasspath + files(rootProject.file('assets'))
-  mainClass = 'hugo.epitech.world.WorldTests'
+  mainClass = 'hugo.map.TestsMonde'
   maxHeapSize = '512m'
 }
 tasks.named('test') {
-  dependsOn worldTests
+  dependsOn verifierCarte
   failOnNoDiscoveredTests = false
 }
 tasks.named('check') {
-  dependsOn worldTests
+  dependsOn verifierCarte
 }

@@ -1,4 +1,4 @@
-package hugo.epitech.screen;
+package hugo.map;
 
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.Gdx;
@@ -12,30 +12,30 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
-import hugo.epitech.world.Camera;
-import hugo.epitech.world.GameMap;
-import hugo.epitech.world.MapRenderer;
+import hugo.map.CameraCarte;
+import hugo.map.CarteJeu;
+import hugo.map.RenduCarte;
 
-public final class MapScreen extends ScreenAdapter {
+public final class EcranCarte extends ScreenAdapter {
     private final boolean smoke;
-    private GameMap world;
-    private MapRenderer renderer;
+    private CarteJeu world;
+    private RenduCarte renderer;
     private SpriteBatch batch;
     private BitmapFont font;
     private Texture white;
-    private final Camera camera=new Camera();
+    private final CameraCarte camera=new CameraCarte();
     private final OrthographicCamera scene=new OrthographicCamera();
     private final OrthographicCamera hud=new OrthographicCamera();
-    private double viewX=GameMap.SPAWN_X,viewY=GameMap.SPAWN_Y;
+    private double viewX=CarteJeu.SPAWN_X,viewY=CarteJeu.SPAWN_Y;
     private boolean debug,miniMap=true;
     private int frames;
     private InputAdapter input;
 
-    public MapScreen(boolean smoke){this.smoke=smoke;}
+    public EcranCarte(boolean smoke){this.smoke=smoke;}
     public void show(){
         if(world!=null){Gdx.input.setInputProcessor(input);return;}
-        try{world=new GameMap();}catch(Exception e){throw new IllegalStateException("Chargement de la map",e);}
-        batch=new SpriteBatch();renderer=new MapRenderer(world);font=new BitmapFont();
+        try{world=new CarteJeu();}catch(Exception e){throw new IllegalStateException("Chargement de la map",e);}
+        batch=new SpriteBatch();renderer=new RenduCarte(world);font=new BitmapFont();
         Pixmap pixel=new Pixmap(1,1,Pixmap.Format.RGBA8888);pixel.setColor(Color.WHITE);pixel.fill();white=new Texture(pixel);pixel.dispose();
         input=new InputAdapter(){
             public boolean scrolled(float amountX,float amountY){camera.zoom-=amountY*.1;return true;}
@@ -56,7 +56,7 @@ public final class MapScreen extends ScreenAdapter {
         if(Gdx.input.isKeyJustPressed(Input.Keys.M))miniMap=!miniMap;
         if(Gdx.input.isKeyJustPressed(Input.Keys.PLUS)||Gdx.input.isKeyJustPressed(Input.Keys.EQUALS)||Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_ADD))camera.zoom+=.15;
         if(Gdx.input.isKeyJustPressed(Input.Keys.MINUS)||Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_SUBTRACT))camera.zoom-=.15;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.R)){viewX=GameMap.SPAWN_X;viewY=GameMap.SPAWN_Y;camera.zoom=1.25;world.reset();}
+        if(Gdx.input.isKeyJustPressed(Input.Keys.R)){viewX=CarteJeu.SPAWN_X;viewY=CarteJeu.SPAWN_Y;camera.zoom=1.25;world.reset();}
         camera.follow(viewX,viewY,Gdx.graphics.getWidth(),Gdx.graphics.getHeight(),world.width,world.height);
         viewX=camera.x;viewY=camera.y;
         scene.setToOrtho(true,Gdx.graphics.getWidth(),Gdx.graphics.getHeight());scene.zoom=(float)(1/camera.zoom);

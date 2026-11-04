@@ -1,4 +1,4 @@
-package hugo.epitech.world;
+package hugo.map;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -7,10 +7,10 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Disposable;
 import java.util.EnumMap;
 
-public final class Sprites implements Disposable {
-    private final EnumMap<AssetType,TextureRegion> cache=new EnumMap<>(AssetType.class);
-    private final EnumMap<AssetType,GroundShadow> shadows=new EnumMap<>(AssetType.class);
-    public TextureRegion get(AssetType type){
+public final class ImagesDecor implements Disposable {
+    private final EnumMap<TypeDecor,TextureRegion> cache=new EnumMap<>(TypeDecor.class);
+    private final EnumMap<TypeDecor,GroundShadow> shadows=new EnumMap<>(TypeDecor.class);
+    public TextureRegion get(TypeDecor type){
         TextureRegion ready=cache.get(type);
         if(ready==null){
             String suffix=type.path.contains("-v3.")?"-v3":"";
@@ -47,7 +47,7 @@ public final class Sprites implements Disposable {
             contact=new TextureRegion(contactTexture);contact.flip(false,true);
         }
     }
-    private GroundShadow createShadow(AssetType type,Pixmap source){
+    private GroundShadow createShadow(TypeDecor type,Pixmap source){
         int width=type.width*2,height=type.height*2;
         int outWidth=width+(int)Math.ceil(height*.22)+4,outHeight=height+(int)Math.ceil(height*.14)+8;
         Pixmap cast=new Pixmap(outWidth,outHeight,Pixmap.Format.RGBA8888);
@@ -76,7 +76,7 @@ public final class Sprites implements Disposable {
         }
         GroundShadow result=new GroundShadow(cast,contact);cast.dispose();contact.dispose();return result;
     }
-    public GroundShadow shadow(AssetType type){get(type);return shadows.get(type);}
+    public GroundShadow shadow(TypeDecor type){get(type);return shadows.get(type);}
     public void dispose(){
         for(TextureRegion sprite:cache.values())sprite.getTexture().dispose();
         for(GroundShadow shadow:shadows.values()){shadow.cast.getTexture().dispose();shadow.contact.getTexture().dispose();}cache.clear();shadows.clear();

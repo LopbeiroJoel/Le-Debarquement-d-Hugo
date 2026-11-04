@@ -1,6 +1,6 @@
-package hugo.epitech.world;
+package hugo.map;
 
-public final class Camera {
+public final class CameraCarte {
     public double x,y,zoom=1.25;
     public void follow(double targetX,double targetY,int screenW,int screenH,int mapW,int mapH){
         double minimum=Math.max(.85,Math.max(screenW/(double)mapW,screenH/(double)mapH));

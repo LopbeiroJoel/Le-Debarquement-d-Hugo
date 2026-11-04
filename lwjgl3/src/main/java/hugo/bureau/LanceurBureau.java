@@ -1,18 +1,18 @@
-package hugo.epitech.lwjgl3;
+package hugo.bureau;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import hugo.epitech.HugoGame;
+import hugo.JeuHugo;
 import java.util.Arrays;
 import org.lwjgl.glfw.GLFW;
 
-public class Lwjgl3Launcher {
+public class LanceurBureau {
     public static void main(String[] args) {
-        if(StartupHelper.startNewJvmIfRequired())return;
+        if(AideDemarrage.startNewJvmIfRequired())return;
         if(Arrays.asList(args).contains("--smoke-test"))System.setProperty("hugo.smokeTest","true");
         if(System.getenv("WSL_DISTRO_NAME")!=null&&System.getenv("DISPLAY")!=null)
             GLFW.glfwInitHint(GLFW.GLFW_PLATFORM,GLFW.GLFW_PLATFORM_X11);
-        new Lwjgl3Application(new HugoGame(),getDefaultConfiguration());
+        new Lwjgl3Application(new JeuHugo(),getDefaultConfiguration());
     }
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration=new Lwjgl3ApplicationConfiguration();

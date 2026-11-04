@@ -1,16 +1,16 @@
-package hugo.epitech.world;
+package hugo.map;
 
 import com.badlogic.gdx.math.Rectangle;
 
-public final class MapEntity {
+public final class ObjetDecor {
     public final String id;
     public final float x,y;
     public final boolean ground;
     public final Rectangle collision;
-    private AssetType type;
+    private TypeDecor type;
     public boolean opened;
 
-    public MapEntity(String id,AssetType type,float x,float y){
+    public ObjetDecor(String id,TypeDecor type,float x,float y){
         this.id=id;this.type=type;this.x=x;this.y=y;
         ground=type.footprint.equals("ground");
         float a=.1f,b=.55f,c=.8f,d=.45f;
@@ -20,8 +20,8 @@ public final class MapEntity {
         if(type.footprint.equals("vertical")){a=.20f;b=.02f;c=.60f;d=.98f;}
         collision=ground?null:new Rectangle(x-type.width/2f+a*type.width,y-type.height+b*type.height,c*type.width,d*type.height);
     }
-    public AssetType getType(){return type;}
-    public boolean isChest(){return type==AssetType.CHEST||type==AssetType.OPEN_CHEST;}
-    public void open(){opened=true;type=AssetType.OPEN_CHEST;}
-    public void reset(){if(isChest()){opened=false;type=AssetType.CHEST;}}
+    public TypeDecor getType(){return type;}
+    public boolean isChest(){return type==TypeDecor.CHEST||type==TypeDecor.OPEN_CHEST;}
+    public void open(){opened=true;type=TypeDecor.OPEN_CHEST;}
+    public void reset(){if(isChest()){opened=false;type=TypeDecor.CHEST;}}
 }

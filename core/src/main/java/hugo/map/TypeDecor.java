@@ -1,7 +1,7 @@
-package hugo.epitech.world;
+package hugo.map;
 
 
-public enum AssetType {
+public enum TypeDecor {
     TREE_JOEL("vegetation/arbre-joel.png",100,140,"tree"),
     TREE_THOMAS("vegetation/arbre-thomas.png",100,140,"tree"),
     TRENCH("obstacles/tranchee-module.png",150,45,"ground"),
@@ -45,12 +45,12 @@ public enum AssetType {
     RUIN("batiments/ferme-en-ruine-v2.png",210,150,"building"),
     CABIN("batiments/cabane-brulee-v2.png",140,120,"building"),
     CHEST("../coffres/caisse-HUGO-fermee-v3.png",56,40,"prop"),
-    OPEN_CHEST("../coffres/caisse-HUGO-fermee-v3.png",56,56,"prop");
+    OPEN_CHEST("../coffres/caisse-HUGO-ouverte-v3.png",56,56,"prop");
 
     public final String path;
     public final int width,height;
     public final String footprint;
-    AssetType(String path,int width,int height,String footprint){
+    TypeDecor(String path,int width,int height,String footprint){
         this.path=path.startsWith("../")?"/"+path.substring(3):"/decor/"+path;
         this.width=width*2;this.height=height*2;this.footprint=footprint;
     }
