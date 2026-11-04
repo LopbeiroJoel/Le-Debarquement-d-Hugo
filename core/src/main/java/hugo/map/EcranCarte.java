@@ -267,7 +267,7 @@ public final class EcranCarte extends ScreenAdapter {
         dessin.setProjectionMatrix(cameraInterface.combined);
         dessin.begin();
 
-        afficherTitre(hauteur);
+       
 
         if (afficherPetiteCarte) {
             dessinerPetiteCarte(largeur, hauteur);
@@ -299,7 +299,7 @@ public final class EcranCarte extends ScreenAdapter {
 
         police.draw(
             dessin,
-            "LE DEBARQUEMENT D'HUGO",
+            "Pour mettre un futur titre à voir",
             28,
             hauteur - 28
         );
