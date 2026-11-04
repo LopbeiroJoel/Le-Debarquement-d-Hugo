@@ -8,24 +8,28 @@ public abstract class Creature implements Entity {
     protected Texture sprite;
     protected float x;
     protected float y;
-    protected float life;
+    protected Life life;
     protected float speed;
     protected float width, height;
     protected float attackRange;
     protected float attackDamage;
     protected float dirX, dirY;
 
-    public Creature(Texture sprite, float x, float y, float life, float speed, float width, float height, float attackRange, float attackDamage) {
+    public Creature(Texture sprite, float x, float y, float maxLife, float speed, float width, float height, float attackRange, float attackDamage) {
         this.sprite = sprite;
         this.x = x;
         this.y = y;
-        this.life = life;
+        this.life = new Life(maxLife);
         this.speed = speed;
         this.width = width;
         this.height = height;
         this.attackRange = attackRange;
         this.attackDamage = attackDamage;
 
+    }
+
+    public Life getLife() {
+        return life;
     }
 
     public void setDirection(float dirX, float dirY) {
