@@ -1,3 +1,5 @@
+// Ca sert juste à seulement voir la map sans rien voir autour
+
 package hugo.map;
 
 public final class CameraCarte {

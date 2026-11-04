@@ -1,3 +1,4 @@
+//placement asset dans la map clauder
 package hugo.map;
 
 import com.badlogic.gdx.math.Rectangle;

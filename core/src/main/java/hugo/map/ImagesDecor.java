@@ -1,3 +1,5 @@
+//clauder les ombres et les assets
+
 package hugo.map;
 
 import com.badlogic.gdx.Gdx;

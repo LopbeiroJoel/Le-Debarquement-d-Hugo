@@ -1,9 +1,10 @@
+//gère l’écran le regard de la map // les touches/caméra/zoom
 package hugo.map;
 
-import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -12,82 +13,557 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
-import hugo.map.CameraCarte;
-import hugo.map.CarteJeu;
-import hugo.map.RenduCarte;
 
 public final class EcranCarte extends ScreenAdapter {
-    private final boolean smoke;
-    private CarteJeu world;
-    private RenduCarte renderer;
-    private SpriteBatch batch;
-    private BitmapFont font;
-    private Texture white;
-    private final CameraCarte camera=new CameraCarte();
-    private final OrthographicCamera scene=new OrthographicCamera();
-    private final OrthographicCamera hud=new OrthographicCamera();
-    private double viewX=CarteJeu.SPAWN_X,viewY=CarteJeu.SPAWN_Y;
-    private boolean debug,miniMap=true;
-    private int frames;
-    private InputAdapter input;
 
-    public EcranCarte(boolean smoke){this.smoke=smoke;}
-    public void show(){
-        if(world!=null){Gdx.input.setInputProcessor(input);return;}
-        try{world=new CarteJeu();}catch(Exception e){throw new IllegalStateException("Chargement de la map",e);}
-        batch=new SpriteBatch();renderer=new RenduCarte(world);font=new BitmapFont();
-        Pixmap pixel=new Pixmap(1,1,Pixmap.Format.RGBA8888);pixel.setColor(Color.WHITE);pixel.fill();white=new Texture(pixel);pixel.dispose();
-        input=new InputAdapter(){
-            public boolean scrolled(float amountX,float amountY){camera.zoom-=amountY*.1;return true;}
+    private static final double VITESSE_CAMERA = 420;
+    private static final double ZOOM_INITIAL = 1.25; // zoom initial de la caméra
+
+    private final boolean modeVerification;
+
+    private CarteJeu carte;
+    private RenduCarte rendu;
+
+    private SpriteBatch dessin;
+    private BitmapFont police;
+    private Texture pixelBlanc;
+
+    private final CameraCarte camera = new CameraCarte();
+
+    private final OrthographicCamera cameraMonde =
+        new OrthographicCamera();
+
+    private final OrthographicCamera cameraInterface =
+        new OrthographicCamera();
+
+    private double positionX = CarteJeu.SPAWN_X;
+    private double positionY = CarteJeu.SPAWN_Y;
+
+    private boolean afficherCollisions = false;
+    private boolean afficherPetiteCarte = true;
+
+    private int nombreImages = 0;
+
+    private InputAdapter commandesSouris;
+
+    public EcranCarte(boolean modeVerification) {
+        this.modeVerification = modeVerification;
+    }
+
+    public void show() {
+        if (carte != null) {
+            Gdx.input.setInputProcessor(commandesSouris);
+            return;
+        }
+
+        chargerCarte();
+        preparerDessin();
+        preparerSouris();
+    }
+
+    private void chargerCarte() {
+        try {
+            carte = new CarteJeu();
+        } catch (Exception erreur) {
+            throw new IllegalStateException(
+                "Chargement de la map impossible",
+                erreur
+            );
+        }
+    }
+
+    private void preparerDessin() {
+        dessin = new SpriteBatch();
+        rendu = new RenduCarte(carte);
+        police = new BitmapFont();
+
+        Pixmap image = new Pixmap(
+            1,
+            1,
+            Pixmap.Format.RGBA8888
+        );
+
+        image.setColor(Color.WHITE);
+        image.fill();
+
+        pixelBlanc = new Texture(image);
+
+        image.dispose();
+    }
+
+    private void preparerSouris() {
+        commandesSouris = new InputAdapter() {  //zoom molette
+            public boolean scrolled(float horizontal, float vertical) {
+                camera.zoom = camera.zoom - vertical * 0.1;
+
+                return true;
+            }
         };
-        Gdx.input.setInputProcessor(input);
+
+        Gdx.input.setInputProcessor(commandesSouris);
     }
-    private boolean held(int...keys){for(int key:keys)if(Gdx.input.isKeyPressed(key))return true;return false;}
-    public void render(float delta){
-        if(Gdx.graphics.getWidth()<=0||Gdx.graphics.getHeight()<=0)return;
-        if(smoke&&frames==30){viewX=3100;viewY=850;}
-        if(smoke&&frames==60){viewX=3900;viewY=1850;}
-        double dt=Math.min(.05,delta);
-        double dx=(held(Input.Keys.D,Input.Keys.RIGHT)?1:0)-(held(Input.Keys.Q,Input.Keys.A,Input.Keys.LEFT)?1:0);
-        double dy=(held(Input.Keys.S,Input.Keys.DOWN)?1:0)-(held(Input.Keys.Z,Input.Keys.W,Input.Keys.UP)?1:0);
-        double length=Math.hypot(dx,dy);
-        if(length>0){viewX+=dx/length*420*dt;viewY+=dy/length*420*dt;}
-        if(Gdx.input.isKeyJustPressed(Input.Keys.F1))debug=!debug;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.M))miniMap=!miniMap;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.PLUS)||Gdx.input.isKeyJustPressed(Input.Keys.EQUALS)||Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_ADD))camera.zoom+=.15;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.MINUS)||Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_SUBTRACT))camera.zoom-=.15;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.R)){viewX=CarteJeu.SPAWN_X;viewY=CarteJeu.SPAWN_Y;camera.zoom=1.25;world.reset();}
-        camera.follow(viewX,viewY,Gdx.graphics.getWidth(),Gdx.graphics.getHeight(),world.width,world.height);
-        viewX=camera.x;viewY=camera.y;
-        scene.setToOrtho(true,Gdx.graphics.getWidth(),Gdx.graphics.getHeight());scene.zoom=(float)(1/camera.zoom);
-        scene.position.set((float)camera.x,(float)camera.y,0);scene.update();
-        ScreenUtils.clear(.04f,.07f,.05f,1);
-        renderer.draw(batch,scene,0,()->{});if(debug)renderer.drawCollisions(scene);
-        drawHud();
-        if(smoke&&(++frames==30||frames==60||frames==90)){
-            Pixmap screenshot=Pixmap.createFromFrameBuffer(0,0,Gdx.graphics.getBackBufferWidth(),Gdx.graphics.getBackBufferHeight());
-            PixmapIO.writePNG(Gdx.files.absolute(System.getProperty("hugo.smokeDir",System.getProperty("java.io.tmpdir")+"/hugo-map-check")+"/"+(frames==30?"libgdx-smoke.png":frames==60?"libgdx-base.png":"libgdx-tranchees.png")),screenshot,-1,true);screenshot.dispose();
-            Gdx.app.log("Verification","libGDX : "+world.entityCount()+" objets, rendu OpenGL, "+frames+" images sans erreur");if(frames==90)Gdx.app.exit();
+
+    public void render(float delta) {
+        int largeur = Gdx.graphics.getWidth();
+        int hauteur = Gdx.graphics.getHeight();
+
+        if (largeur <= 0 || hauteur <= 0) {
+            return;
+        }
+
+        if (modeVerification) {
+            positionnerCameraVerification();
+        }
+
+        double tempsEcoule = Math.min(delta, 0.05);
+
+        deplacerCamera(tempsEcoule);
+        lireRaccourcis();
+        actualiserCamera(largeur, hauteur);
+
+        afficherMonde();
+        afficherInterface(largeur, hauteur);
+
+        if (modeVerification) {
+            verifierAffichage();
         }
     }
-    private void drawHud(){
-        int width=Gdx.graphics.getWidth(),height=Gdx.graphics.getHeight();hud.setToOrtho(false,width,height);
-        batch.setProjectionMatrix(hud.combined);batch.begin();
-        batch.setColor(.04f,.07f,.05f,.72f);batch.draw(white,16, height-48,254,30);batch.setColor(Color.WHITE);
-        font.setColor(.88f,.84f,.67f,1);font.draw(batch,"LE DEBARQUEMENT D'HUGO",28,height-28);
-        if(miniMap){
-            float mx=width-254,my=height-184;
-            batch.setColor(.04f,.07f,.05f,.85f);batch.draw(white,mx-7,my-7,244,174);batch.setColor(Color.WHITE);batch.draw(renderer.overview,mx,my,230,160);
-            float left=mx+(float)((camera.x-width/(2*camera.zoom))/world.width*230);
-            float bottom=my+160-(float)((camera.y+height/(2*camera.zoom))/world.height*160);
-            float w=(float)(width/camera.zoom/world.width*230),h=(float)(height/camera.zoom/world.height*160);
-            batch.setColor(1,1,.85f,.8f);batch.draw(white,left,bottom,w,1);batch.draw(white,left,bottom+h,w,1);batch.draw(white,left,bottom,1,h);batch.draw(white,left+w,bottom,1,h);
+
+    private void deplacerCamera(double tempsEcoule) { // caméra touches / fleches
+        double directionX = 0;
+        double directionY = 0;
+
+        if (toucheMaintenue(Input.Keys.D, Input.Keys.RIGHT)) {
+            directionX = directionX + 1;
         }
-        batch.setColor(.04f,.07f,.05f,.72f);batch.draw(white,20,17,478,27);batch.setColor(Color.WHITE);
-        font.setColor(.9f,.9f,.8f,1);font.draw(batch,"ZQSD / Fleches : camera libre    Molette : zoom    M : carte",30,35);
-        if(debug)font.draw(batch,world.entityCount()+" objets | "+(int)camera.x+", "+(int)camera.y+" | "+Gdx.graphics.getFramesPerSecond()+" FPS",28,height-70);
-        batch.setColor(Color.WHITE);batch.end();
+
+        if (
+            toucheMaintenue(
+                Input.Keys.Q,
+                Input.Keys.A,
+                Input.Keys.LEFT
+            )
+        ) {
+            directionX = directionX - 1;
+        }
+
+        if (toucheMaintenue(Input.Keys.S, Input.Keys.DOWN)) {
+            directionY = directionY + 1;
+        }
+
+        if (
+            toucheMaintenue(
+                Input.Keys.Z,
+                Input.Keys.W,
+                Input.Keys.UP
+            )
+        ) {
+            directionY = directionY - 1;
+        }
+
+        double longueur = Math.hypot(directionX, directionY);
+
+        if (longueur > 0) {
+            directionX = directionX / longueur;
+            directionY = directionY / longueur;
+
+            positionX = positionX
+                + directionX * VITESSE_CAMERA * tempsEcoule;
+
+            positionY = positionY
+                + directionY * VITESSE_CAMERA * tempsEcoule;
+        }
     }
-    public void hide(){if(Gdx.input.getInputProcessor()==input)Gdx.input.setInputProcessor(null);}
-    public void dispose(){hide();if(renderer!=null){renderer.dispose();batch.dispose();font.dispose();white.dispose();}}
+
+    private boolean toucheMaintenue(int... touches) {
+        for (int touche : touches) {
+            if (Gdx.input.isKeyPressed(touche)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void lireRaccourcis() { //zoom avec clavier
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F1)) {
+            afficherCollisions = !afficherCollisions;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+            afficherPetiteCarte = !afficherPetiteCarte;
+        }
+
+        boolean agrandir =
+            Gdx.input.isKeyJustPressed(Input.Keys.PLUS) ||
+            Gdx.input.isKeyJustPressed(Input.Keys.EQUALS) ||
+            Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_ADD);
+
+        if (agrandir) {
+            camera.zoom = camera.zoom + 0.15;
+        }
+
+        boolean reduire =
+            Gdx.input.isKeyJustPressed(Input.Keys.MINUS) ||
+            Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_SUBTRACT);
+
+        if (reduire) {
+            camera.zoom = camera.zoom - 0.15;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            revenirAuDepart();
+        }
+    }
+
+    private void revenirAuDepart() {
+        positionX = CarteJeu.SPAWN_X;
+        positionY = CarteJeu.SPAWN_Y;
+
+        camera.zoom = ZOOM_INITIAL;
+
+        carte.reset();
+    }
+
+    private void actualiserCamera(int largeur, int hauteur) {
+        camera.follow(
+            positionX,
+            positionY,
+            largeur,
+            hauteur,
+            carte.width,
+            carte.height
+        );
+
+        positionX = camera.x;
+        positionY = camera.y;
+
+        cameraMonde.setToOrtho(true, largeur, hauteur);
+
+        cameraMonde.zoom = (float) (1 / camera.zoom);
+
+        cameraMonde.position.set(
+            (float) camera.x,
+            (float) camera.y,
+            0
+        );
+
+        cameraMonde.update();
+    }
+
+    private void afficherMonde() {
+        ScreenUtils.clear(0.04f, 0.07f, 0.05f, 1);
+
+        rendu.draw(dessin, cameraMonde, 0, () -> {});
+
+        if (afficherCollisions) {
+            rendu.drawCollisions(cameraMonde);
+        }
+    }
+
+    private void afficherInterface(int largeur, int hauteur) {
+        cameraInterface.setToOrtho(false, largeur, hauteur);
+
+        dessin.setProjectionMatrix(cameraInterface.combined);
+        dessin.begin();
+
+        afficherTitre(hauteur);
+
+        if (afficherPetiteCarte) {
+            dessinerPetiteCarte(largeur, hauteur);
+        }
+
+        afficherAide();
+
+        if (afficherCollisions) {
+            afficherInformationsDebug(hauteur);
+        }
+
+        dessin.setColor(Color.WHITE);
+        dessin.end();
+    }
+
+    private void afficherTitre(int hauteur) {
+        dessinerRectangle(
+            16,
+            hauteur - 48,
+            254,
+            30,
+            0.04f,
+            0.07f,
+            0.05f,
+            0.72f
+        );
+
+        police.setColor(0.88f, 0.84f, 0.67f, 1);
+
+        police.draw(
+            dessin,
+            "LE DEBARQUEMENT D'HUGO",
+            28,
+            hauteur - 28
+        );
+    }
+
+    private void dessinerPetiteCarte(int largeur, int hauteur) { //petite carte
+        float x = largeur - 254;
+        float y = hauteur - 184;
+
+        dessinerRectangle(
+            x - 7,
+            y - 7,
+            244,
+            174,
+            0.04f,
+            0.07f,
+            0.05f,
+            0.85f
+        );
+
+        dessin.setColor(Color.WHITE);
+
+        dessin.draw(
+            rendu.overview,
+            x,
+            y,
+            230,
+            160
+        );
+
+        dessinerCadreCamera(x, y, largeur, hauteur);
+    }
+
+    private void dessinerCadreCamera(
+        float xPetiteCarte,
+        float yPetiteCarte,
+        int largeurEcran,
+        int hauteurEcran
+    ) {
+        double largeurVisible = largeurEcran / camera.zoom;
+        double hauteurVisible = hauteurEcran / camera.zoom;
+
+        double gaucheVisible = camera.x - largeurVisible / 2; //curseur minimap
+        double basVisible = camera.y + hauteurVisible / 2;
+
+        float gauche = xPetiteCarte  // position de la caméra sur la petite carte
+            + (float) (gaucheVisible / carte.width * 230);
+
+        float bas = yPetiteCarte + 160
+            - (float) (basVisible / carte.height * 160);
+
+        float largeurCadre =
+            (float) (largeurVisible / carte.width * 230);
+
+        float hauteurCadre =
+            (float) (hauteurVisible / carte.height * 160);
+
+        dessin.setColor(1, 1, 0.85f, 0.8f); //curseur couleur/direction ou il va
+
+        dessin.draw(
+            pixelBlanc,
+            gauche,
+            bas,
+            largeurCadre,
+            1
+        );
+
+        dessin.draw(
+            pixelBlanc,
+            gauche,
+            bas + hauteurCadre,
+            largeurCadre,
+            1
+        );
+
+        dessin.draw(
+            pixelBlanc,
+            gauche,
+            bas,
+            1,
+            hauteurCadre
+        );
+
+        dessin.draw(
+            pixelBlanc,
+            gauche + largeurCadre,
+            bas,
+            1,
+            hauteurCadre
+        );
+
+        dessin.setColor(Color.WHITE);
+    }
+
+    private void afficherAide() {
+        dessinerRectangle(
+            20,
+            17,
+            478,
+            27,
+            0.04f,
+            0.07f,
+            0.05f,
+            0.72f
+        );
+
+        police.setColor(0.9f, 0.9f, 0.8f, 1);
+
+        police.draw(
+            dessin,
+            "ZQSD / Fleches : camera libre    Molette : zoom    M : carte",
+            30,
+            35
+        );
+    }
+
+    private void afficherInformationsDebug(int hauteur) {
+        int x = (int) camera.x;
+        int y = (int) camera.y;
+        int imagesParSeconde = Gdx.graphics.getFramesPerSecond();
+
+        String informations =
+            carte.entityCount() + " objets | "
+            + x + ", " + y + " | "
+            + imagesParSeconde + " FPS";
+
+        police.draw(
+            dessin,
+            informations,
+            28,
+            hauteur - 70
+        );
+    }
+
+    private void dessinerRectangle(
+        float x,
+        float y,
+        float largeur,
+        float hauteur,
+        float rouge,
+        float vert,
+        float bleu,
+        float transparence
+    ) {
+        dessin.setColor(
+            rouge,
+            vert,
+            bleu,
+            transparence
+        );
+
+        dessin.draw(
+            pixelBlanc,
+            x,
+            y,
+            largeur,
+            hauteur
+        );
+
+        dessin.setColor(Color.WHITE);
+    }
+
+    private void positionnerCameraVerification() {
+        if (nombreImages == 30) {
+            positionX = 3100;
+            positionY = 850;
+        }
+
+        if (nombreImages == 60) {
+            positionX = 3900;
+            positionY = 1850;
+        }
+    }
+
+    private void verifierAffichage() {
+        nombreImages = nombreImages + 1;
+
+        boolean enregistrer =
+            nombreImages == 30 ||
+            nombreImages == 60 ||
+            nombreImages == 90;
+
+        if (!enregistrer) {
+            return;
+        }
+
+        enregistrerCapture();
+
+        Gdx.app.log(
+            "Verification",
+            "libGDX : "
+                + carte.entityCount()
+                + " objets, rendu OpenGL, "
+                + nombreImages
+                + " images sans erreur"
+        );
+
+        if (nombreImages == 90) {
+            Gdx.app.exit();
+        }
+    }
+
+    private void enregistrerCapture() {
+        String nomFichier = "libgdx-smoke.png";
+
+        if (nombreImages == 60) {
+            nomFichier = "libgdx-base.png";
+        }
+
+        if (nombreImages == 90) {
+            nomFichier = "libgdx-tranchees.png";
+        }
+
+        String dossierParDefaut =
+            System.getProperty("java.io.tmpdir")
+                + "/hugo-map-check";
+
+        String dossier = System.getProperty(
+            "hugo.smokeDir",
+            dossierParDefaut
+        );
+
+        Pixmap capture = Pixmap.createFromFrameBuffer(
+            0,
+            0,
+            Gdx.graphics.getBackBufferWidth(),
+            Gdx.graphics.getBackBufferHeight()
+        );
+
+        try {
+            PixmapIO.writePNG(
+                Gdx.files.absolute(dossier + "/" + nomFichier),
+                capture,
+                -1,
+                true
+            );
+        } finally {
+            capture.dispose();
+        }
+    }
+
+    public void hide() {
+        if (Gdx.input.getInputProcessor() == commandesSouris) {
+            Gdx.input.setInputProcessor(null);
+        }
+    }
+
+    public void dispose() {
+        hide();
+
+        if (rendu != null) {
+            rendu.dispose();
+        }
+
+        if (dessin != null) {
+            dessin.dispose();
+        }
+
+        if (police != null) {
+            police.dispose();
+        }
+
+        if (pixelBlanc != null) {
+            pixelBlanc.dispose();
+        }
+    }
 }
