@@ -13,11 +13,14 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import hugo.mob.MobLvl1;
 
 public final class EcranCarte extends ScreenAdapter {
 
     private static final double VITESSE_CAMERA = 420;
     private static final double ZOOM_INITIAL = 1.25; // zoom initial de la caméra
+
+    private static final String MOB_TEXTURE_PATH = "mobs/soldier-level-1.png";
 
     private final boolean modeVerification;
 
@@ -27,6 +30,9 @@ public final class EcranCarte extends ScreenAdapter {
     private SpriteBatch dessin;
     private BitmapFont police;
     private Texture pixelBlanc;
+
+    private Texture mobTexture;
+    private MobLvl1 mob;
 
     private final CameraCarte camera = new CameraCarte();
 
@@ -58,6 +64,7 @@ public final class EcranCarte extends ScreenAdapter {
 
         chargerCarte();
         preparerDessin();
+        loadMob();
         preparerSouris();
     }
 
@@ -91,6 +98,27 @@ public final class EcranCarte extends ScreenAdapter {
         image.dispose();
     }
 
+    private void loadMob() {
+        if (!Gdx.files.internal(MOB_TEXTURE_PATH).exists()) {
+            Gdx.app.log("Mob", "Asset attendu : " + MOB_TEXTURE_PATH);
+            return;
+        }
+
+        mobTexture = new Texture(Gdx.files.internal(MOB_TEXTURE_PATH));
+        mobTexture.setFilter(
+            Texture.TextureFilter.Nearest,
+            Texture.TextureFilter.Nearest
+        );
+
+        mob = new MobLvl1(
+            mobTexture,
+            CarteJeu.SPAWN_X - 24,
+            CarteJeu.SPAWN_Y - 64
+        );
+
+        Gdx.app.log("Mob", "Asset charge : " + MOB_TEXTURE_PATH);
+    }
+
     private void preparerSouris() {
         commandesSouris = new InputAdapter() {  //zoom molette
             public boolean scrolled(float horizontal, float vertical) {
@@ -120,6 +148,10 @@ public final class EcranCarte extends ScreenAdapter {
         deplacerCamera(tempsEcoule);
         lireRaccourcis();
         actualiserCamera(largeur, hauteur);
+
+        if (mob != null) {
+            mob.update((float) tempsEcoule);
+        }
 
         afficherMonde();
         afficherInterface(largeur, hauteur);
@@ -254,7 +286,11 @@ public final class EcranCarte extends ScreenAdapter {
     private void afficherMonde() {
         ScreenUtils.clear(0.04f, 0.07f, 0.05f, 1);
 
-        rendu.draw(dessin, cameraMonde, 0, () -> {});
+        if (mob == null) {
+            rendu.draw(dessin, cameraMonde, 0, () -> {});
+        } else {
+            rendu.draw(dessin, cameraMonde, mob.getFeetY(), () -> mob.draw(dessin));
+        }
 
         if (afficherCollisions) {
             rendu.drawCollisions(cameraMonde);
@@ -560,6 +596,10 @@ public final class EcranCarte extends ScreenAdapter {
 
         if (police != null) {
             police.dispose();
+        }
+
+        if (mobTexture != null) {
+            mobTexture.dispose();
         }
 
         if (pixelBlanc != null) {
