@@ -2,6 +2,7 @@ package hugo.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
 
 public abstract class Creature implements Entity {
 
@@ -14,8 +15,10 @@ public abstract class Creature implements Entity {
     protected float attackRange;
     protected float attackDamage;
     protected float dirX, dirY;
+    private final Rectangle hitbox = new Rectangle();
+    private final float hitboxSize;
 
-    public Creature(Texture sprite, float x, float y, float maxLife, float speed, float width, float height, float attackRange, float attackDamage) {
+    public Creature(Texture sprite, float x, float y, float maxLife, float speed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
         this.sprite = sprite;
         this.x = x;
         this.y = y;
@@ -25,6 +28,7 @@ public abstract class Creature implements Entity {
         this.height = height;
         this.attackRange = attackRange;
         this.attackDamage = attackDamage;
+        this.hitboxSize = hitboxSize;
 
     }
 
@@ -42,7 +46,21 @@ public abstract class Creature implements Entity {
         }
     }
 
-    @Override 
+    private void updateHitbox() {
+        hitbox.set(
+                x + (width - hitboxSize) / 2f, // f = float
+                y + (height - hitboxSize) / 2f,
+                hitboxSize,
+                hitboxSize
+        );
+    }
+
+    public Rectangle getHitbox() {
+        updateHitbox();
+        return hitbox;
+    }
+
+    @Override
     public void update(float deltaTime) {
         this.x += dirX * speed * deltaTime;
         this.y += dirY * speed * deltaTime;
