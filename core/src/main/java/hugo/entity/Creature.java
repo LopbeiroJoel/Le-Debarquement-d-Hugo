@@ -1,9 +1,9 @@
-package hugo.entite;
+package hugo.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public abstract class Entite {
+public abstract class Creature implements Entity {
 
     protected Texture sprite;
     protected float x;
@@ -15,7 +15,7 @@ public abstract class Entite {
     protected float attackDamage;
     protected float dirX, dirY;
 
-    public Entite(Texture sprite, float x, float y, float life, float speed, float width, float height, float attackRange, float attackDamage) {
+    public Creature(Texture sprite, float x, float y, float life, float speed, float width, float height, float attackRange, float attackDamage) {
         this.sprite = sprite;
         this.x = x;
         this.y = y;
@@ -38,11 +38,13 @@ public abstract class Entite {
         }
     }
 
+    @Override 
     public void update(float deltaTime) {
         this.x += dirX * speed * deltaTime;
         this.y += dirY * speed * deltaTime;
     }
 
+    @Override
     public void draw(SpriteBatch batch) {
         batch.draw(sprite, x, y, width, height);
     }
