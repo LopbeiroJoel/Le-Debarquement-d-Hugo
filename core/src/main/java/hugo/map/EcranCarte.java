@@ -14,6 +14,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import hugo.entity.Player;
+
 public final class EcranCarte extends ScreenAdapter {
 
     private static final double VITESSE_CAMERA = 420;
@@ -27,6 +29,8 @@ public final class EcranCarte extends ScreenAdapter {
     private SpriteBatch dessin;
     private BitmapFont police;
     private Texture pixelBlanc;
+    private Texture textureHugo;
+    private Player hugo;
 
     private final CameraCarte camera = new CameraCarte();
 
@@ -76,6 +80,9 @@ public final class EcranCarte extends ScreenAdapter {
         dessin = new SpriteBatch();
         rendu = new RenduCarte(carte);
         police = new BitmapFont();
+        textureHugo = new Texture("hero-v2.png");
+        hugo = new Player(textureHugo, CarteJeu.SPAWN_X, CarteJeu.SPAWN_Y);
+        hugo.setMap(carte);
 
         Pixmap image = new Pixmap(
             1,
@@ -166,13 +173,13 @@ public final class EcranCarte extends ScreenAdapter {
         if (longueur > 0) {
             directionX = directionX / longueur;
             directionY = directionY / longueur;
-
-            positionX = positionX
-                + directionX * VITESSE_CAMERA * tempsEcoule;
-
-            positionY = positionY
-                + directionY * VITESSE_CAMERA * tempsEcoule;
         }
+
+        hugo.setDirection((float) directionX, (float) directionY);  
+        hugo.update((float) tempsEcoule);         
+
+        positionX = hugo.getX();               
+        positionY = hugo.getCenterY();
     }
 
     private boolean toucheMaintenue(int... touches) {
@@ -254,7 +261,7 @@ public final class EcranCarte extends ScreenAdapter {
     private void afficherMonde() {
         ScreenUtils.clear(0.04f, 0.07f, 0.05f, 1);
 
-        rendu.draw(dessin, cameraMonde, 0, () -> {});
+        rendu.draw(dessin, cameraMonde, hugo.getY(), () -> hugo.draw(dessin));
 
         if (afficherCollisions) {
             rendu.drawCollisions(cameraMonde);
@@ -564,6 +571,9 @@ public final class EcranCarte extends ScreenAdapter {
 
         if (pixelBlanc != null) {
             pixelBlanc.dispose();
+        }
+        if (textureHugo != null) {
+            textureHugo.dispose();
         }
     }
 }

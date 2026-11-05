@@ -1,12 +1,15 @@
 package hugo.entity;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+
+import hugo.map.CarteJeu;
 
 public abstract class Creature implements Entity {
 
-    protected Texture sprite;
+    protected TextureRegion sprite;
     protected float x;
     protected float y;
     protected Life life;
@@ -17,9 +20,11 @@ public abstract class Creature implements Entity {
     protected float dirX, dirY;
     private final Rectangle hitbox = new Rectangle();
     private final float hitboxSize;
+    protected CarteJeu map;
 
-    public Creature(Texture sprite, float x, float y, float maxLife, float baseSpeed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
-        this.sprite = sprite;
+    public Creature(TextureRegion sprite, float x, float y, float maxLife, float baseSpeed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
+        this.sprite = new TextureRegion(sprite);
+        this.sprite.flip(false, true);
         this.x = x;
         this.y = y;
         this.life = new Life(maxLife);
@@ -48,6 +53,14 @@ public abstract class Creature implements Entity {
         return attackDamage;
     }
 
+    public float getX() {
+        return x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
     public void setDirection(float dirX, float dirY) {
         this.dirX = dirX;
         this.dirY = dirY;
@@ -60,8 +73,8 @@ public abstract class Creature implements Entity {
 
     private void updateHitbox() {
         hitbox.set(
-                x + (width - hitboxSize) / 2f, // f = float
-                y + (height - hitboxSize) / 2f,
+                x - hitboxSize / 2f,
+                getCenterY() - hitboxSize / 2f,
                 hitboxSize,
                 hitboxSize
         );
@@ -72,14 +85,32 @@ public abstract class Creature implements Entity {
         return hitbox;
     }
 
+    public float getCenterY() {
+        return y - height / 2f;
+    }
+
     @Override
     public void update(float deltaTime) {
-        this.x += dirX * speed.getValue() * deltaTime;
-        this.y += dirY * speed.getValue() * deltaTime;
+        float dx = dirX * speed.getValue() * deltaTime;
+        float dy = dirY * speed.getValue() * deltaTime;
+
+        if (map == null) {
+            x += dx;
+            y += dy;
+            return;
+        }
+
+        Vector2 newPosition = map.move(x, y, dx, dy);
+        x = newPosition.x;
+        y = newPosition.y;
     }
 
     @Override
     public void draw(SpriteBatch batch) {
-        batch.draw(sprite, x, y, width, height);
+        batch.draw(sprite, x - width / 2f, y - height, width, height);
+    }
+
+    public void setMap(CarteJeu map) {
+        this.map = map;
     }
 }
