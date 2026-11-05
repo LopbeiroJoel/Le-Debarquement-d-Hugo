@@ -14,6 +14,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import hugo.mob.MobLvl1;
+import hugo.mob.spawn.MobSpawner;
+import hugo.wave.WaveManager;
 
 public final class EcranCarte extends ScreenAdapter {
 
@@ -33,6 +35,8 @@ public final class EcranCarte extends ScreenAdapter {
 
     private Texture mobTexture;
     private MobLvl1 mob;
+    private final WaveManager waveManager = new WaveManager();
+    private final MobSpawner mobSpawner = new MobSpawner();
 
     private final CameraCarte camera = new CameraCarte();
 
@@ -153,6 +157,14 @@ public final class EcranCarte extends ScreenAdapter {
             mob.update((float) tempsEcoule);
         }
 
+        mob = mobSpawner.updateWave(
+            waveManager,
+            delta,
+            mob,
+            mobTexture,
+            CarteJeu.SPAWN_X - MobLvl1.SPRITE_WIDTH / 2f,
+            CarteJeu.SPAWN_Y - MobLvl1.SPRITE_HEIGHT
+        );
         afficherMonde();
         afficherInterface(largeur, hauteur);
 
