@@ -22,7 +22,7 @@ public abstract class Mob extends Creature {
         this.attackInterval = Math.max(0, attackInterval);
     }
 
-    public void follow(Rectangle hugoHitbox) {
+    public void follow(Rectangle hugoHitbox) { //bah follow quoi
         if (hugoHitbox == null || life.isDead()) {
             setDirection(0, 0); // pas de Hugo ou mob mort
             return;
@@ -77,7 +77,7 @@ public abstract class Mob extends Creature {
             return false;
         }
 
-        target.getLife().takeDamage(attackDamage);
+        target.getLife().takeDamage(getAttackDamage().getValue());
         attackCooldown = attackInterval;
         onAttack();
         return true;
