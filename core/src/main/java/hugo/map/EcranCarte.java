@@ -82,6 +82,7 @@ public final class EcranCarte extends ScreenAdapter {
         police = new BitmapFont();
         textureHugo = new Texture("hero-v2.png");
         hugo = new Player(textureHugo, CarteJeu.SPAWN_X, CarteJeu.SPAWN_Y);
+        hugo.setMap(carte);
 
         Pixmap image = new Pixmap(
             1,
