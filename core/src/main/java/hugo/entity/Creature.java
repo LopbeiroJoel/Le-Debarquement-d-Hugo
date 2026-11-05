@@ -21,6 +21,7 @@ public abstract class Creature implements Entity {
     private final Rectangle hitbox = new Rectangle();
     private final float hitboxSize;
     protected CarteJeu map;
+    protected boolean facingLeft = false;  
 
     public Creature(TextureRegion sprite, float x, float y, float maxLife, float baseSpeed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
         this.sprite = new TextureRegion(sprite);
@@ -94,6 +95,11 @@ public abstract class Creature implements Entity {
         float dx = dirX * speed.getValue() * deltaTime;
         float dy = dirY * speed.getValue() * deltaTime;
 
+        if (dx < 0) {
+            facingLeft = true;
+        } else if (dx > 0) {
+            facingLeft = false;
+        }
         if (map == null) {
             x += dx;
             y += dy;
@@ -107,7 +113,11 @@ public abstract class Creature implements Entity {
 
     @Override
     public void draw(SpriteBatch batch) {
-        batch.draw(sprite, x - width / 2f, y - height, width, height);
+        if (facingLeft) {
+            batch.draw(sprite, x + width / 2f, y - height, -width, height);
+        } else {
+            batch.draw(sprite, x - width / 2f, y - height, width, height);
+        }
     }
 
     public void setMap(CarteJeu map) {
