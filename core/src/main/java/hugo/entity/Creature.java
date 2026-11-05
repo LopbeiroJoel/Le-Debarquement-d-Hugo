@@ -69,8 +69,8 @@ public abstract class Creature implements Entity {
 
     private void updateHitbox() {
         hitbox.set(
-                x + (width - hitboxSize) / 2f, // f = float
-                y + (height - hitboxSize) / 2f,
+                x - hitboxSize / 2f, 
+                getCenterY() - hitboxSize / 2f,
                 hitboxSize,
                 hitboxSize
         );
