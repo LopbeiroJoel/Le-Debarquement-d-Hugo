@@ -1,15 +1,18 @@
 package hugo.entity;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class Player extends Creature {             
 
     private static final float MAX_LIFE = 100;
-    private static final float BASE_SPEED = 150;
-    private static final float WIDTH = 48;
-    private static final float HEIGHT = 64;
+    private static final float BASE_SPEED = 400;
+    private static final float WIDTH = 96;
+    private static final float HEIGHT = 128;
+    private static final int FRAME_WIDTH = 543;
+    private static final int FRAME_HEIGHT = 724;
     private static final float ATTACK_RANGE = 300;
-    private static final float ATTACK_DAMAGE = 10;
+    private static final float ATTACK_DAMAGE = 7;
     private static final float HITBOX_SIZE = 22;
     private static final float CRIT_CHANCE = 0.1f;
     private static final float CRIT_MULTIPLIER = 2.0f;
@@ -20,12 +23,13 @@ public class Player extends Creature {
     private Stat critMultiplier;
 
 
-    public Player(Texture sprite, float x, float y) {
-        super(sprite, x, y, MAX_LIFE, BASE_SPEED, WIDTH, HEIGHT, ATTACK_RANGE, ATTACK_DAMAGE, HITBOX_SIZE); 
+
+    public Player(Texture sheet, float x, float y) {
+        super(new TextureRegion(sheet, 0, 0, FRAME_WIDTH, FRAME_HEIGHT), x, y, MAX_LIFE, BASE_SPEED, WIDTH, HEIGHT, ATTACK_RANGE, ATTACK_DAMAGE, HITBOX_SIZE); 
         this.xp = 0;               
         this.critChance = new Stat(CRIT_CHANCE); 
         this.critMultiplier = new Stat(CRIT_MULTIPLIER);
-    }
+        }
 
     public float getXp() {
         return xp;

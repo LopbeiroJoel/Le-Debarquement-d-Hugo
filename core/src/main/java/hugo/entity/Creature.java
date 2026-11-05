@@ -1,12 +1,12 @@
 package hugo.entity;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 
 public abstract class Creature implements Entity {
 
-    protected Texture sprite;
+    protected TextureRegion sprite;
     protected float x;
     protected float y;
     protected Life life;
@@ -18,8 +18,9 @@ public abstract class Creature implements Entity {
     private final Rectangle hitbox = new Rectangle();
     private final float hitboxSize;
 
-    public Creature(Texture sprite, float x, float y, float maxLife, float baseSpeed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
-        this.sprite = sprite;
+    public Creature(TextureRegion sprite, float x, float y, float maxLife, float baseSpeed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
+        this.sprite = new TextureRegion(sprite);
+        this.sprite.flip(false, true); 
         this.x = x;
         this.y = y;
         this.life = new Life(maxLife);
@@ -48,6 +49,14 @@ public abstract class Creature implements Entity {
         return attackDamage;
     }
 
+    public float getX() {
+        return x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
     public void setDirection(float dirX, float dirY) {
         this.dirX = dirX;
         this.dirY = dirY;
@@ -72,6 +81,10 @@ public abstract class Creature implements Entity {
         return hitbox;
     }
 
+    public float getCenterY() {
+        return y - height / 2f;
+    }
+
     @Override
     public void update(float deltaTime) {
         this.x += dirX * speed.getValue() * deltaTime;
@@ -80,6 +93,6 @@ public abstract class Creature implements Entity {
 
     @Override
     public void draw(SpriteBatch batch) {
-        batch.draw(sprite, x, y, width, height);
+        batch.draw(sprite, x - width/2f, y - height, width, height);
     }
 }
