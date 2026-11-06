@@ -4,8 +4,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import hugo.entity.Creature;
-import hugo.map.CarteJeu;
 
 public class MobLvl2 extends Mob {
     private static final int SPRITE_SIZE = 76;
@@ -43,14 +41,6 @@ public class MobLvl2 extends Mob {
         }
 
         return frames;
-    }
-
-    public void updateAgainst(Creature target, CarteJeu map, float deltaTime) {
-        super.updateAgainst(target, map, deltaTime);
-
-        if (deltaTime > 0 && !isBiting() && attack(target)) {
-            facingLeft = target.getX() < x;
-        }
     }
 
     public void update(float deltaTime) {

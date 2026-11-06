@@ -80,6 +80,14 @@ public class MobLvl1 extends Mob {
     }
 
     protected void onAttack() {
+        playBatonAttack();
+    }
+
+    public void playBatonAttack() {
+        if (life.isDead()) {
+            return;
+        }
+
         attackTime = 0;
         moving = false;
         setDirection(0, 0);

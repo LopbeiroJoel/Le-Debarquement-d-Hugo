@@ -23,8 +23,6 @@ public final class EcranCarte extends ScreenAdapter {
     private static final double VITESSE_CAMERA = 420;
     private static final double ZOOM_INITIAL = 1.25; // zoom initial de la caméra
 
-    private static final String MOB_TEXTURE_PATH = "mobs/soldier-level-1.png";
-
     private final boolean modeVerification;
 
     private CarteJeu carte;
@@ -36,9 +34,6 @@ public final class EcranCarte extends ScreenAdapter {
     private Texture textureHugo;
     private Player hugo;
 
-    private Texture mobTexture;
-    private Texture dogWalkTexture;
-    private Texture dogBiteTexture;
     private final WaveManager waveManager = new WaveManager();
     private final MobSpawner mobSpawner = new MobSpawner();
 
@@ -72,8 +67,7 @@ public final class EcranCarte extends ScreenAdapter {
 
         chargerCarte();
         preparerDessin();
-        loadMob();
-        loadDogTextures();
+        mobSpawner.spawnWave(waveManager, carte, hugo.getX(), hugo.getY());
         preparerSouris();
     }
 
@@ -108,36 +102,6 @@ public final class EcranCarte extends ScreenAdapter {
         pixelBlanc = new Texture(image);
 
         image.dispose();
-    }
-
-    private void loadMob() {
-        if (!Gdx.files.internal(MOB_TEXTURE_PATH).exists()) {
-            Gdx.app.log("Mob", "Asset attendu : " + MOB_TEXTURE_PATH);
-            return;
-        }
-
-        mobTexture = new Texture(Gdx.files.internal(MOB_TEXTURE_PATH), true);
-        mobTexture.setFilter(
-            Texture.TextureFilter.MipMapLinearNearest,
-            Texture.TextureFilter.Nearest
-        );
-
-        mobSpawner.spawnLevelOne(
-            mobTexture,
-            CarteJeu.SPAWN_X + 80,
-            CarteJeu.SPAWN_Y,
-            waveManager.getDamageMultiplier()
-        );
-
-        Gdx.app.log("Mob", "Asset charge : " + MOB_TEXTURE_PATH);
-    }
-
-    private void loadDogTextures() {
-        dogWalkTexture = new Texture(Gdx.files.internal("mobs/german-shepherd-walk.png"), true);
-        dogBiteTexture = new Texture(Gdx.files.internal("mobs/german-shepherd-bite.png"), true);
-
-        dogWalkTexture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Nearest);
-        dogBiteTexture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Nearest);
     }
 
     private void preparerSouris() {
@@ -177,11 +141,9 @@ public final class EcranCarte extends ScreenAdapter {
         mobSpawner.updateWave(
             waveManager,
             delta,
-            mobTexture,
-            dogWalkTexture,
-            dogBiteTexture,
-            CarteJeu.SPAWN_X + 80,
-            CarteJeu.SPAWN_Y
+            carte,
+            hugo.getX(),
+            hugo.getY()
         );
         afficherMonde();
         afficherInterface(largeur, hauteur);
@@ -623,16 +585,7 @@ public final class EcranCarte extends ScreenAdapter {
             police.dispose();
         }
 
-        if (mobTexture != null) {
-            mobTexture.dispose();
-        }
-
-        if (dogWalkTexture != null) {
-            dogWalkTexture.dispose();
-        }
-        if (dogBiteTexture != null) {
-            dogBiteTexture.dispose();
-        }
+        mobSpawner.dispose();
 
         if (pixelBlanc != null) {
             pixelBlanc.dispose();
