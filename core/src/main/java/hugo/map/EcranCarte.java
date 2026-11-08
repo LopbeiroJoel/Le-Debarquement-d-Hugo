@@ -63,6 +63,8 @@ public final class EcranCarte extends ScreenAdapter {
 
     private InputAdapter commandesSouris;
 
+    private static final float XP_PAR_MOB = 10;
+
     public EcranCarte(boolean modeVerification) {
         this.modeVerification = modeVerification;
     }
@@ -215,6 +217,7 @@ public final class EcranCarte extends ScreenAdapter {
         }
         verifierTouches();
         projectiles.removeIf(projectile -> !projectile.isActive());
+        mobSpawner.getMobs().removeIf(mob -> mob.getLife().isDead());
 
         positionX = hugo.getX();               
         positionY = hugo.getCenterY();
@@ -228,7 +231,10 @@ public final class EcranCarte extends ScreenAdapter {
                 }
                 if (projectile.getHitbox().overlaps(mob.getHitbox())) {
                     mob.getLife().takeDamage(projectile.getDamage());   
-                    projectile.destroy();                            
+                    projectile.destroy();
+                    if (mob.getLife().isDead()) {
+                        hugo.addXp(XP_PAR_MOB);
+                    }                          
                 }
             }
         }
