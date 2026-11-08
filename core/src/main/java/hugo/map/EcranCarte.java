@@ -207,9 +207,12 @@ public final class EcranCarte extends ScreenAdapter {
         hugo.update((float) tempsEcoule);         
 
         if (hugo.canShoot()) {
-            Projectile projectile = hugo.shoot(bulletSprite);
-            projectile.setMap(carte);
-            projectiles.add(projectile);
+              Mob cible = trouverMobLePlusProche();
+            if (cible != null) {                                   
+                Projectile projectile = hugo.shoot(bulletSprite, cible); 
+                projectile.setMap(carte);
+                projectiles.add(projectile);
+            }
         }
 
         for (Projectile projectile : projectiles) {
@@ -238,6 +241,27 @@ public final class EcranCarte extends ScreenAdapter {
                 }
             }
         }
+    }
+
+    private Mob trouverMobLePlusProche() {
+        Mob plusProche = null;                       
+        float meilleureDistance = Float.MAX_VALUE;     
+        float portee = hugo.getAttackRange().getValue();
+
+        for (Mob mob : mobSpawner.getMobs()) {
+            if (mob.getLife().isDead()) {
+                continue;
+            }
+            float dx = mob.getX() - hugo.getX();                 
+            float dy = mob.getCenterY() - hugo.getCenterY();      
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);  
+
+            if (distance <= portee && distance < meilleureDistance) {              
+                meilleureDistance = distance;
+                plusProche = mob;
+            }
+        }
+        return plusProche;                            
     }
 
     private boolean toucheMaintenue(int... touches) {
