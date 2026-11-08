@@ -20,6 +20,9 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import hugo.entity.Player;
 import hugo.entity.Projectile;
+import hugo.mob.Mob;
+import hugo.mob.spawn.MobSpawner;
+import hugo.wave.WaveManager;
 
 public final class EcranCarte extends ScreenAdapter {
 
@@ -38,6 +41,9 @@ public final class EcranCarte extends ScreenAdapter {
     private Player hugo;
     private final List<Projectile> projectiles = new ArrayList<>();
     private TextureRegion bulletSprite;
+
+    private final WaveManager waveManager = new WaveManager();
+    private final MobSpawner mobSpawner = new MobSpawner();
 
     private final CameraCarte camera = new CameraCarte();
 
@@ -69,6 +75,7 @@ public final class EcranCarte extends ScreenAdapter {
 
         chargerCarte();
         preparerDessin();
+        mobSpawner.spawnWave(waveManager, carte, hugo.getX(), hugo.getY());
         preparerSouris();
     }
 
@@ -137,6 +144,17 @@ public final class EcranCarte extends ScreenAdapter {
         lireRaccourcis();
         actualiserCamera(largeur, hauteur);
 
+        for (Mob mob : mobSpawner.getMobs()) {
+            mob.updateAgainst(hugo, carte, (float) tempsEcoule);
+        }
+
+        mobSpawner.updateWave(
+            waveManager,
+            delta,
+            carte,
+            hugo.getX(),
+            hugo.getY()
+        );
         afficherMonde();
         afficherInterface(largeur, hauteur);
 
@@ -166,7 +184,6 @@ public final class EcranCarte extends ScreenAdapter {
         if (toucheMaintenue(Input.Keys.S, Input.Keys.DOWN)) {
             directionY = directionY + 1;
         }
-
         if (
             toucheMaintenue(
                 Input.Keys.Z,
@@ -282,12 +299,14 @@ public final class EcranCarte extends ScreenAdapter {
     private void afficherMonde() {
         ScreenUtils.clear(0.04f, 0.07f, 0.05f, 1);
 
-        rendu.draw(dessin, cameraMonde, hugo.getY(), () -> {
-            hugo.draw(dessin);
-            for (Projectile projectile : projectiles) {
-                projectile.draw(dessin);
-            }
-        });
+        rendu.draw(dessin, cameraMonde, hugo, mobSpawner.getMobs());
+
+        dessin.setProjectionMatrix(cameraMonde.combined);
+        dessin.begin();
+        for (Projectile projectile : projectiles) {
+            projectile.draw(dessin);
+        }
+        dessin.end();
 
         if (afficherCollisions) {
             rendu.drawCollisions(cameraMonde);
@@ -594,6 +613,8 @@ public final class EcranCarte extends ScreenAdapter {
         if (police != null) {
             police.dispose();
         }
+
+        mobSpawner.dispose();
 
         if (pixelBlanc != null) {
             pixelBlanc.dispose();

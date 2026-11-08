@@ -14,12 +14,16 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import hugo.entity.Creature;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public final class RenduCarte implements Disposable {
 
     private final CarteJeu carte;
+    private final List<Creature> drawOrder = new ArrayList<>();
     private final ImagesDecor images = new ImagesDecor();
 
     // les images du sol
@@ -101,7 +105,7 @@ public final class RenduCarte implements Disposable {
 
         ScreenUtils.clear(0, 0, 0, 1);
 
-        draw(dessin, camera, 0, () -> {});
+        draw(dessin, camera, null, List.of());
 
         image.end();
 
@@ -114,9 +118,16 @@ public final class RenduCarte implements Disposable {
     public void draw(
         SpriteBatch dessin,
         OrthographicCamera camera,
-        float personnageY,
-        Runnable dessinerPersonnage
+        Creature player,
+        List<? extends Creature> enemies
     ) {
+        drawOrder.clear();
+        if (player != null) {
+            drawOrder.add(player);
+        }
+        drawOrder.addAll(enemies);
+        drawOrder.sort(Comparator.comparingDouble(Creature::getY));
+
         actualiserZoneVisible(camera);
 
         dessin.setProjectionMatrix(camera.combined);
@@ -132,11 +143,7 @@ public final class RenduCarte implements Disposable {
         dessinerOmbres(dessin);
 
         // arbres, maisons, barrières et perso
-        dessinerDecorEtPersonnage(
-            dessin,
-            personnageY,
-            dessinerPersonnage
-        );
+        dessinerDecorEtPersonnages(dessin);
 
         dessin.end();
     }
@@ -239,36 +246,27 @@ public final class RenduCarte implements Disposable {
     }
 
     // met le perso devant ou derrière les objets
-    private void dessinerDecorEtPersonnage(
-        SpriteBatch dessin,
-        float personnageY,
-        Runnable dessinerPersonnage
-    ) {
-        boolean personnageDessine = false;
-
+    private void dessinerDecorEtPersonnages(SpriteBatch dessin) {
+        int nextCreature = 0;
         dessin.setColor(Color.WHITE);
 
         for (ObjetDecor objet : carte.getEntities()) {
-            // le sol est déjà dessiné
             if (objet.ground) {
                 continue;
             }
-
-            // le perso est derrière cet objet
-            if (!personnageDessine && personnageY < objet.y) {
-                dessinerPersonnage.run();
-                personnageDessine = true;
+            while (nextCreature < drawOrder.size()
+                    && drawOrder.get(nextCreature).getY() < objet.y) {
+                drawOrder.get(nextCreature).draw(dessin);
+                nextCreature++;
             }
-
-            // arbre, maison, barrière...
             if (estVisible(objet)) {
                 dessinerObjet(dessin, objet);
             }
         }
 
-        // sinon le perso est devant tous les objets
-        if (!personnageDessine) {
-            dessinerPersonnage.run();
+        while (nextCreature < drawOrder.size()) {
+            drawOrder.get(nextCreature).draw(dessin);
+            nextCreature++;
         }
     }
 
