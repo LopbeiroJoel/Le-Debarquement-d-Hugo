@@ -1,6 +1,9 @@
 //gère l’écran le regard de la map // les touches/caméra/zoom
 package hugo.map;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -12,11 +15,14 @@ import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ScreenUtils;
+
+import hugo.entity.Player;
+import hugo.entity.Projectile;
 import hugo.mob.Mob;
 import hugo.mob.spawn.MobSpawner;
 import hugo.wave.WaveManager;
-import hugo.entity.Player;
 
 public final class EcranCarte extends ScreenAdapter {
 
@@ -33,6 +39,8 @@ public final class EcranCarte extends ScreenAdapter {
     private Texture pixelBlanc;
     private Texture textureHugo;
     private Player hugo;
+    private final List<Projectile> projectiles = new ArrayList<>();
+    private TextureRegion bulletSprite;
 
     private final WaveManager waveManager = new WaveManager();
     private final MobSpawner mobSpawner = new MobSpawner();
@@ -90,6 +98,7 @@ public final class EcranCarte extends ScreenAdapter {
         hugo = new Player(textureHugo, CarteJeu.SPAWN_X, CarteJeu.SPAWN_Y);
         hugo.setMap(carte);
 
+
         Pixmap image = new Pixmap(
             1,
             1,
@@ -100,6 +109,7 @@ public final class EcranCarte extends ScreenAdapter {
         image.fill();
 
         pixelBlanc = new Texture(image);
+        bulletSprite = new TextureRegion(pixelBlanc);
 
         image.dispose();
     }
@@ -194,6 +204,18 @@ public final class EcranCarte extends ScreenAdapter {
         hugo.setDirection((float) directionX, (float) directionY);  
         hugo.update((float) tempsEcoule);         
 
+        if (hugo.canShoot()) {
+            Projectile projectile = hugo.shoot(bulletSprite);
+            projectile.setMap(carte);
+            projectiles.add(projectile);
+        }
+
+        for (Projectile projectile : projectiles) {
+            projectile.update((float) tempsEcoule);
+        }
+
+        projectiles.removeIf(projectile -> !projectile.isActive());
+
         positionX = hugo.getX();               
         positionY = hugo.getCenterY();
     }
@@ -278,6 +300,13 @@ public final class EcranCarte extends ScreenAdapter {
         ScreenUtils.clear(0.04f, 0.07f, 0.05f, 1);
 
         rendu.draw(dessin, cameraMonde, hugo, mobSpawner.getMobs());
+
+        dessin.setProjectionMatrix(cameraMonde.combined);
+        dessin.begin();
+        for (Projectile projectile : projectiles) {
+            projectile.draw(dessin);
+        }
+        dessin.end();
 
         if (afficherCollisions) {
             rendu.drawCollisions(cameraMonde);

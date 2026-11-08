@@ -12,12 +12,16 @@ public class Player extends Creature {
     private static final float HEIGHT = 96;
     private static final int FRAME_WIDTH = 543;
     private static final int FRAME_HEIGHT = 724;
-    private static final float ATTACK_RANGE = 300;
+    private static final float ATTACK_RANGE = 500;
     private static final float ATTACK_DAMAGE = 7;
     private static final float HITBOX_SIZE = 33;
     private static final float CRIT_CHANCE = 0.1f;
     private static final float CRIT_MULTIPLIER = 2.0f;
     private static final float FRAME_DURATION = 0.15f;
+    private static final float FIRE_DELAY = 1.0f;
+    private static final float BULLET_SPEED = 1000.0f;
+    private static final float BULLET_SIZE = 8.0f;
+
     private TextureRegion[] frames;
     private Animation<TextureRegion> walkAnimation;
     private float stateTime;
@@ -25,6 +29,9 @@ public class Player extends Creature {
     private float xp;
     private Stat critChance;
     private Stat critMultiplier;
+
+    private Stat fireDelay = new Stat(FIRE_DELAY);
+    private float fireTimer = 0.0f;
 
     public Player(Texture sheet, float x, float y) {
         super(new TextureRegion(sheet, 0, 0, FRAME_WIDTH, FRAME_HEIGHT), x, y, MAX_LIFE, BASE_SPEED, WIDTH, HEIGHT, ATTACK_RANGE, ATTACK_DAMAGE, HITBOX_SIZE);
@@ -70,5 +77,22 @@ public class Player extends Creature {
             stateTime = 0;
             sprite = frames[0];
         }
+
+        fireTimer += deltaTime;
+    }
+
+    public boolean canShoot() {
+        return fireTimer >= fireDelay.getValue();
+    }
+
+    public Projectile shoot(TextureRegion bulletSprite) {
+        fireTimer = 0.0f;
+
+        float shootDirX = facingLeft ? -1 : 1;
+        return new Projectile(bulletSprite, x, getCenterY(), shootDirX, 0, BULLET_SPEED, attackDamage.getValue(), attackRange.getValue(), BULLET_SIZE, BULLET_SIZE);
+    }
+
+    public Stat getFireDelay() {
+        return fireDelay;
     }
 }
