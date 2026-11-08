@@ -213,11 +213,25 @@ public final class EcranCarte extends ScreenAdapter {
         for (Projectile projectile : projectiles) {
             projectile.update((float) tempsEcoule);
         }
-
+        verifierTouches();
         projectiles.removeIf(projectile -> !projectile.isActive());
 
         positionX = hugo.getX();               
         positionY = hugo.getCenterY();
+    }
+
+    private void verifierTouches() {
+        for (Projectile projectile : projectiles) {
+            for (Mob mob : mobSpawner.getMobs()) {
+                if (!projectile.isActive() || mob.getLife().isDead()) {
+                    continue;
+                }
+                if (projectile.getHitbox().overlaps(mob.getHitbox())) {
+                    mob.getLife().takeDamage(projectile.getDamage());   
+                    projectile.destroy();                            
+                }
+            }
+        }
     }
 
     private boolean toucheMaintenue(int... touches) {

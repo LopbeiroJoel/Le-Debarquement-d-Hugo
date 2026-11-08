@@ -3,6 +3,7 @@ package hugo.entity;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 
 public class Player extends Creature {
 
@@ -88,8 +89,13 @@ public class Player extends Creature {
     public Projectile shoot(TextureRegion bulletSprite) {
         fireTimer = 0.0f;
 
+        float damage = attackDamage.getValue();
+        if (MathUtils.random() < critChance.getValue()) {
+            damage *= critMultiplier.getValue();
+        }
+
         float shootDirX = facingLeft ? -1 : 1;
-        return new Projectile(bulletSprite, x, getCenterY(), shootDirX, 0, BULLET_SPEED, attackDamage.getValue(), attackRange.getValue(), BULLET_SIZE, BULLET_SIZE);
+        return new Projectile(bulletSprite, x, getCenterY(), shootDirX, 0, BULLET_SPEED,  damage, attackRange.getValue(), BULLET_SIZE, BULLET_SIZE);
     }
 
     public Stat getFireDelay() {
