@@ -86,7 +86,7 @@ public class Player extends Creature {
         return fireTimer >= fireDelay.getValue();
     }
 
-    public Projectile shoot(TextureRegion bulletSprite) {
+    public Projectile shoot(TextureRegion bulletSprite, Creature target) {
         fireTimer = 0.0f;
 
         float damage = attackDamage.getValue();
@@ -94,8 +94,14 @@ public class Player extends Creature {
             damage *= critMultiplier.getValue();
         }
 
-        float shootDirX = facingLeft ? -1 : 1;
-        return new Projectile(bulletSprite, x, getCenterY(), shootDirX, 0, BULLET_SPEED,  damage, attackRange.getValue(), BULLET_SIZE, BULLET_SIZE);
+        float dx = target.getX() - x;
+        float dy = target.getCenterY() - getCenterY();
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (length != 0) {
+            dx /= length;
+            dy /= length;
+        }
+        return new Projectile(bulletSprite, x, getCenterY(), dx, dy, BULLET_SPEED,  damage, attackRange.getValue(), BULLET_SIZE, BULLET_SIZE);
     }
 
     public Stat getFireDelay() {
