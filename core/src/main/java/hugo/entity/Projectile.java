@@ -4,6 +4,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 
+import hugo.map.CarteJeu;
+
+
 public class Projectile implements Entity {
 
     private final TextureRegion sprite;
@@ -16,6 +19,7 @@ public class Projectile implements Entity {
     private float traveled;
     private boolean active;
     private final Rectangle hitbox = new Rectangle();
+    private CarteJeu map;
 
     public Projectile(TextureRegion sprite, float x, float y, float dirX, float dirY, float speed, float damage, float maxRange, float width, float height) {
         this.sprite = sprite;
@@ -32,6 +36,10 @@ public class Projectile implements Entity {
         this.active = true;
     }
 
+    public void setMap(CarteJeu map) {
+        this.map = map;
+    }
+
     @Override
     public void update(float deltaTime) {
         if (!active) {
@@ -39,12 +47,20 @@ public class Projectile implements Entity {
         }
 
         float distance = speed * deltaTime;
-        x += dirX * distance;
-        y += dirY * distance;
+        float newX = x + dirX * distance;
+        float newY = y + dirY * distance;
+
+        if (map != null && map.blocksShot(x, y, newX, newY)) {
+            destroy();
+            return;
+        }
+
+        x = newX;
+        y = newY;
         traveled += distance;
 
         if (traveled >= maxRange) {
-            active = false;
+            destroy();
         }
 
         hitbox.set(x - width / 2f, y - height / 2f, width, height);

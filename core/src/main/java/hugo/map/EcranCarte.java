@@ -189,6 +189,7 @@ public final class EcranCarte extends ScreenAdapter {
 
         if (hugo.canShoot()) {
             Projectile projectile = hugo.shoot(bulletSprite);
+            projectile.setMap(carte);
             projectiles.add(projectile);
         }
 
