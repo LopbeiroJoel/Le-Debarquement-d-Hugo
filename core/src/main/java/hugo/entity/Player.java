@@ -12,14 +12,14 @@ public class Player extends Creature {
     private static final float HEIGHT = 96;
     private static final int FRAME_WIDTH = 543;
     private static final int FRAME_HEIGHT = 724;
-    private static final float ATTACK_RANGE = 300;
+    private static final float ATTACK_RANGE = 500;
     private static final float ATTACK_DAMAGE = 7;
     private static final float HITBOX_SIZE = 33;
     private static final float CRIT_CHANCE = 0.1f;
     private static final float CRIT_MULTIPLIER = 2.0f;
     private static final float FRAME_DURATION = 0.15f;
     private static final float FIRE_DELAY = 1.0f;
-    private static final float BULLET_SPEED = 600.0f;
+    private static final float BULLET_SPEED = 1000.0f;
     private static final float BULLET_SIZE = 8.0f;
 
     private TextureRegion[] frames;
