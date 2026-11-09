@@ -22,12 +22,16 @@ import hugo.entity.Player;
 import hugo.entity.Projectile;
 import hugo.mob.Mob;
 import hugo.mob.spawn.MobSpawner;
+import hugo.upgrade.UpgradeMenu;
 import hugo.wave.WaveManager;
+
 
 public final class EcranCarte extends ScreenAdapter {
 
     private static final double VITESSE_CAMERA = 420;
     private static final double ZOOM_INITIAL = 1.25; // zoom initial de la caméra
+
+    private final UpgradeMenu upgradeMenu = new UpgradeMenu();
 
     private final boolean modeVerification;
 
@@ -139,24 +143,25 @@ public final class EcranCarte extends ScreenAdapter {
         if (modeVerification) {
             positionnerCameraVerification();
         }
-
         double tempsEcoule = Math.min(delta, 0.05);
 
-        deplacerCamera(tempsEcoule);
+        if (!upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
+            upgradeMenu.open();
+        }
+
+        if (upgradeMenu.isOpen()) {
+            upgradeMenu.update(hugo, largeur, hauteur);
+        } else {
+            deplacerCamera(tempsEcoule);
+            for (Mob mob : mobSpawner.getMobs()) {
+                mob.updateAgainst(hugo, carte, (float) tempsEcoule, mobSpawner);
+            }
+            mobSpawner.updateWave(waveManager, delta, carte, hugo.getX(), hugo.getY());
+        }
+
         lireRaccourcis();
         actualiserCamera(largeur, hauteur);
 
-        for (Mob mob : mobSpawner.getMobs()) {
-            mob.updateAgainst(hugo, carte, (float) tempsEcoule, mobSpawner);
-        }
-
-        mobSpawner.updateWave(
-            waveManager,
-            delta,
-            carte,
-            hugo.getX(),
-            hugo.getY()
-        );
         afficherMonde();
         afficherInterface(largeur, hauteur);
 
@@ -379,6 +384,7 @@ public final class EcranCarte extends ScreenAdapter {
         }
 
         dessin.setColor(Color.WHITE);
+        upgradeMenu.draw(dessin, pixelBlanc, largeur, hauteur);
         dessin.end();
     }
 
@@ -662,6 +668,7 @@ public final class EcranCarte extends ScreenAdapter {
         }
 
         mobSpawner.dispose();
+        upgradeMenu.dispose();
 
         if (pixelBlanc != null) {
             pixelBlanc.dispose();
