@@ -1,6 +1,7 @@
 package hugo.entity;
 
 public class Life {
+
     private float currentLife;
     private float maxLife;
 
@@ -15,7 +16,7 @@ public class Life {
 
     private void setCurrentLife(float currentLife) {
         this.currentLife = Math.max(0, Math.min(currentLife, maxLife));
-        
+
     }
 
     public void takeDamage(float amount) {
@@ -42,5 +43,14 @@ public class Life {
 
     public boolean isDead() {
         return currentLife <= 0;
+    }
+
+    public void increaseMaxLife(float factor) {
+        if (factor <= 1.0f) {
+            return;
+        }
+        float oldMax = maxLife;
+        maxLife *= factor;
+        heal(maxLife - oldMax);
     }
 }

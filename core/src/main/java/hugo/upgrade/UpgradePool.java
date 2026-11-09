@@ -15,6 +15,7 @@ public class UpgradePool {
         upgrades.add(new StatUpgrade("+10 % de dégâts critique", player -> player.getCritMultiplier(), 1.1f));
         upgrades.add(new FlatStatUpgrade("+10 % de chance de critique", player -> player.getCritChance(), 0.1f));
         upgrades.add(new StatUpgrade("-10 % de délai de tir", player -> player.getFireDelay(), 0.9f));
+        upgrades.add(new MaxLifeUpgrade("+20 % de vie maximum", 1.2f));
         
     }
 
