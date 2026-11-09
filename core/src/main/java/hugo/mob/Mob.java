@@ -1,6 +1,8 @@
 package hugo.mob;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -110,5 +112,21 @@ public abstract class Mob extends Creature {
 
     public float getFeetY() {
         return y;
+    }
+
+    public void drawHealthBar(SpriteBatch batch, Texture pixel) {
+        float healthRatio = getLife().getCurrentLife() / getLife().getMaxLife();
+        float barWidth = 36f;
+        float barHeight = 5f;
+        float barX = x - barWidth / 2f;
+        float barY = y - height - 10f;
+
+        batch.setColor(Color.DARK_GRAY);
+        batch.draw(pixel, barX, barY, barWidth, barHeight);
+
+        batch.setColor(Color.RED);
+        batch.draw(pixel, barX, barY, barWidth * healthRatio, barHeight);
+
+        batch.setColor(Color.WHITE);
     }
 }

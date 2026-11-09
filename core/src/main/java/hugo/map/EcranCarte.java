@@ -350,6 +350,9 @@ public final class EcranCarte extends ScreenAdapter {
         for (Projectile projectile : projectiles) {
             projectile.draw(dessin);
         }
+        for (Mob mob : mobSpawner.getMobs()) {
+            mob.drawHealthBar(dessin, pixelBlanc);
+        }
         dessin.end();
 
         if (afficherCollisions) {
