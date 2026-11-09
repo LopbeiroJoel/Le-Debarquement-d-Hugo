@@ -14,6 +14,7 @@ public abstract class Mob extends Creature {
 
     private float attackCooldown = 0;
     private float attackInterval = 1;
+    private int xpReward;
 
     public Mob(Texture texture, float x, float y, int health, int speed,
                int width, int height, int hitboxSize) {
@@ -108,6 +109,14 @@ public abstract class Mob extends Creature {
     }
 
     protected void onAttack() {
+    }
+
+    public int getXpReward() {
+        return xpReward;
+    }
+
+    public void setXpReward(int xpReward) {
+        this.xpReward = xpReward;
     }
 
     public float getFeetY() {

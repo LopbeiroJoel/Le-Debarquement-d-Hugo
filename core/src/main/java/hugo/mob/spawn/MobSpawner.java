@@ -11,6 +11,7 @@ import hugo.mob.MobLvl2;
 import hugo.mob.MobLvl3;
 import hugo.mob.MobLvl4;
 import hugo.mob.MobLvl5;
+import hugo.mob.xp.MobXp;
 import hugo.wave.WaveManager;
 
 import java.util.ArrayList;
@@ -77,7 +78,8 @@ public class MobSpawner implements Disposable {
 
                 Mob mob = createMob(level, position.x, position.y);
                 mob.getAttackDamage().addMultiplier(waveManager.getDamageMultiplier());
-                mobs.add(mob);
+                mob.setXpReward(MobXp.rewardFor(waveManager.getWave(), waveManager.getCycle()));
+        mobs.add(mob);
                 mobIndex++;
             }
         }

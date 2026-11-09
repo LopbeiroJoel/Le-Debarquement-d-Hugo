@@ -63,7 +63,6 @@ public final class EcranCarte extends ScreenAdapter {
 
     private InputAdapter commandesSouris;
 
-    private static final float XP_PAR_MOB = 10;
 
     public EcranCarte(boolean modeVerification) {
         this.modeVerification = modeVerification;
@@ -236,7 +235,7 @@ public final class EcranCarte extends ScreenAdapter {
                     mob.getLife().takeDamage(projectile.getDamage());   
                     projectile.destroy();
                     if (mob.getLife().isDead()) {
-                        hugo.addXp(XP_PAR_MOB);
+                        hugo.addXp(mob.getXpReward());
                     }                          
                 }
             }
