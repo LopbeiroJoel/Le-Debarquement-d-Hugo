@@ -22,6 +22,8 @@ public class Player extends Creature {
     private static final float FIRE_DELAY = 1.0f;
     private static final float BULLET_SPEED = 1000.0f;
     private static final float BULLET_SIZE = 8.0f;
+    private static final float FIRST_LEVEL_XP = 50;
+    private static final float LEVEL_XP_GROWTH = 1.3f;
 
     private TextureRegion[] frames;
     private Animation<TextureRegion> walkAnimation;
@@ -33,6 +35,10 @@ public class Player extends Creature {
 
     private Stat fireDelay = new Stat(FIRE_DELAY);
     private float fireTimer = 0.0f;
+
+    private int level = 1;
+    private float xpToNextLevel = FIRST_LEVEL_XP;
+    private int pendingUpgrades = 0;
 
     public Player(Texture sheet, float x, float y) {
         super(new TextureRegion(sheet, 0, 0, FRAME_WIDTH, FRAME_HEIGHT), x, y, MAX_LIFE, BASE_SPEED, WIDTH, HEIGHT, ATTACK_RANGE, ATTACK_DAMAGE, HITBOX_SIZE);
@@ -65,6 +71,24 @@ public class Player extends Creature {
             return;
         }
         this.xp += amount;
+        while (xp >= xpToNextLevel) {
+            xp -= xpToNextLevel;
+            level++;
+            pendingUpgrades++;
+            xpToNextLevel *= LEVEL_XP_GROWTH;
+        }
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public float getXpToNextLevel() {
+        return xpToNextLevel;
+    }
+
+    public int getPendingUpgrades() {
+        return pendingUpgrades;
     }
 
     @Override
@@ -101,7 +125,7 @@ public class Player extends Creature {
             dx /= length;
             dy /= length;
         }
-        return new Projectile(bulletSprite, x, getCenterY(), dx, dy, BULLET_SPEED,  damage, attackRange.getValue(), BULLET_SIZE, BULLET_SIZE);
+        return new Projectile(bulletSprite, x, getCenterY(), dx, dy, BULLET_SPEED, damage, attackRange.getValue(), BULLET_SIZE, BULLET_SIZE);
     }
 
     public Stat getFireDelay() {
