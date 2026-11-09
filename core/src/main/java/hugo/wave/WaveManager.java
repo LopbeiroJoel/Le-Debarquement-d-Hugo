@@ -4,7 +4,7 @@ public class WaveManager {
     private int wave = 1 ;
     private int cycle = 1 ;
 
-    private static float WAVE_DURATION = 60f;
+    private static float WAVE_DURATION = 25f;
     private float elapsedTime = 0f;
 
     public boolean update(float delta) {

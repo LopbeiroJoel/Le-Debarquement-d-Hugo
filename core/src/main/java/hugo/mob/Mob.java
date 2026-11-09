@@ -3,8 +3,10 @@ package hugo.mob;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import hugo.entity.Creature;
 import hugo.map.CarteJeu;
+import hugo.mob.spawn.MobSpawner;
 
 public abstract class Mob extends Creature {
 
@@ -27,9 +29,18 @@ public abstract class Mob extends Creature {
         this.attackInterval = Math.max(0, attackInterval);
     }
 
-    public void updateAgainst(Creature target, CarteJeu map, float deltaTime) {
+    public void updateAgainst(Creature target, CarteJeu map, float deltaTime, MobSpawner spawner) {
         setMap(map);
         follow(target == null ? null : target.getHitbox());
+
+        float dx = dirX * getSpeed().getValue() * deltaTime;
+        float dy = dirY * getSpeed().getValue() * deltaTime;
+        Vector2 nextPosition = map.move(x, y, dx, dy);
+
+        if (!spawner.hasRoom(this, nextPosition.x, nextPosition.y)) {
+            setDirection(0, 0);
+        }
+
         update(deltaTime);
     }
 

@@ -147,7 +147,7 @@ public final class EcranCarte extends ScreenAdapter {
         actualiserCamera(largeur, hauteur);
 
         for (Mob mob : mobSpawner.getMobs()) {
-            mob.updateAgainst(hugo, carte, (float) tempsEcoule);
+            mob.updateAgainst(hugo, carte, (float) tempsEcoule, mobSpawner);
         }
 
         mobSpawner.updateWave(
