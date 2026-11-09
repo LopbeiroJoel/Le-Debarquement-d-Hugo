@@ -6,8 +6,8 @@ public class MaxLifeUpgrade extends Upgrade {
 
     private final float factor;
 
-    public MaxLifeUpgrade(String name, float factor) {
-        super(name);                     
+    public MaxLifeUpgrade(String name, String imageName, float factor) {
+        super(name, imageName);
         this.factor = factor;
     }
 

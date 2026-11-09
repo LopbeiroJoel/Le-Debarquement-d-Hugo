@@ -131,4 +131,10 @@ public class Player extends Creature {
     public Stat getFireDelay() {
         return fireDelay;
     }
+
+    public void consumePendingUpgrade() {
+        if (pendingUpgrades > 0) {    
+            pendingUpgrades--;          
+        }
+    }
 }

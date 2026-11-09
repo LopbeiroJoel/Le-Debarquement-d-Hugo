@@ -8,10 +8,10 @@ import hugo.entity.Stat;
 public class StatUpgrade extends Upgrade {
 
     private final Function<Player, Stat> statSelector;   // comment trouver la stat dans le joueur
-    private final float factor;                          
+    private final float factor;       
 
-    public StatUpgrade(String name, Function<Player, Stat> statSelector, float factor) {
-        super(name);                                   
+    public StatUpgrade(String name, String imageName, Function<Player, Stat> statSelector, float factor) {
+        super(name, imageName);                                   
         this.statSelector = statSelector;
         this.factor = factor;
     }
