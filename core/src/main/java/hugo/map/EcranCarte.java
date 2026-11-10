@@ -18,6 +18,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import hugo.Hugo_XP.XpBar;
+import hugo.admin.Admin;
+import hugo.chest.ChestBonusMenu;
 import hugo.entity.Player;
 import hugo.entity.Projectile;
 import hugo.mob.Mob;
@@ -44,8 +47,12 @@ public final class EcranCarte extends ScreenAdapter {
     private Texture textureHugo;
     private Player hugo;
     private final List<Projectile> projectiles = new ArrayList<>();
+    private final List<Projectile> enemyProjectiles = new ArrayList<>();
     private TextureRegion bulletSprite;
 
+    private final XpBar xpBar = new XpBar();
+    private final ChestBonusMenu chestBonusMenu = new ChestBonusMenu();
+    private final Admin admin = new Admin();
     private final WaveManager waveManager = new WaveManager();
     private final MobSpawner mobSpawner = new MobSpawner();
 
@@ -67,7 +74,6 @@ public final class EcranCarte extends ScreenAdapter {
 
     private InputAdapter commandesSouris;
 
-    private static final float XP_PAR_MOB = 10;
 
     public EcranCarte(boolean modeVerification) {
         this.modeVerification = modeVerification;
@@ -88,6 +94,7 @@ public final class EcranCarte extends ScreenAdapter {
     private void chargerCarte() {
         try {
             carte = new CarteJeu();
+            carte.setChestListener(id -> chestBonusMenu.open());
         } catch (Exception erreur) {
             throw new IllegalStateException(
                 "Chargement de la map impossible",
@@ -145,17 +152,29 @@ public final class EcranCarte extends ScreenAdapter {
         }
         double tempsEcoule = Math.min(delta, 0.05);
 
-        if (!upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
+        if (!chestBonusMenu.isOpen() && !upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
             upgradeMenu.open();
         }
 
-        if (upgradeMenu.isOpen()) {
+        if (chestBonusMenu.isOpen()) {
+            chestBonusMenu.update(largeur, hauteur);
+        } else if (upgradeMenu.isOpen()) {
             upgradeMenu.update(hugo, largeur, hauteur);
         } else {
             deplacerCamera(tempsEcoule);
+            carte.updateChests(delta);
+            carte.updateTriggers(hugo.getX(), hugo.getY());
             for (Mob mob : mobSpawner.getMobs()) {
                 mob.updateAgainst(hugo, carte, (float) tempsEcoule, mobSpawner);
+                mob.attackTarget(hugo, bulletSprite, enemyProjectiles);
             }
+            for (Projectile projectile : enemyProjectiles) {
+                projectile.update((float) tempsEcoule);
+                if (projectile.isActive() && projectile.getHitbox().overlaps(hugo.getHitbox())) {
+                    projectile.destroy();
+                }
+            }
+            enemyProjectiles.removeIf(projectile -> !projectile.isActive());
             mobSpawner.updateWave(waveManager, delta, carte, hugo.getX(), hugo.getY());
         }
 
@@ -241,7 +260,7 @@ public final class EcranCarte extends ScreenAdapter {
                     mob.getLife().takeDamage(projectile.getDamage());   
                     projectile.destroy();
                     if (mob.getLife().isDead()) {
-                        hugo.addXp(XP_PAR_MOB);
+                        hugo.addXp(mob.getXpReward());
                     }                          
                 }
             }
@@ -280,6 +299,15 @@ public final class EcranCarte extends ScreenAdapter {
     }
 
     private void lireRaccourcis() { //zoom avec clavier
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F9)) {
+            hugo.toggleSuperSaiyan(pixelBlanc);
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F8)) {
+            admin.killAllMobs(mobSpawner);
+            enemyProjectiles.clear();
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.F1)) {
             afficherCollisions = !afficherCollisions;
         }
@@ -317,6 +345,7 @@ public final class EcranCarte extends ScreenAdapter {
         camera.zoom = ZOOM_INITIAL;
 
         carte.reset();
+        chestBonusMenu.close();
     }
 
     private void actualiserCamera(int largeur, int hauteur) {
@@ -355,9 +384,13 @@ public final class EcranCarte extends ScreenAdapter {
         for (Projectile projectile : projectiles) {
             projectile.draw(dessin);
         }
+        for (Projectile projectile : enemyProjectiles) {
+            projectile.draw(dessin);
+        }
         for (Mob mob : mobSpawner.getMobs()) {
             mob.drawHealthBar(dessin, pixelBlanc);
         }
+        hugo.drawHealthBar(dessin, pixelBlanc);
         dessin.end();
 
         if (afficherCollisions) {
@@ -384,7 +417,9 @@ public final class EcranCarte extends ScreenAdapter {
         }
 
         dessin.setColor(Color.WHITE);
+        xpBar.draw(dessin, pixelBlanc, police, hugo, hauteur);
         upgradeMenu.draw(dessin, pixelBlanc, largeur, hauteur);
+        chestBonusMenu.draw(dessin, pixelBlanc, police, largeur, hauteur);
         dessin.end();
     }
 
@@ -672,6 +707,9 @@ public final class EcranCarte extends ScreenAdapter {
 
         if (pixelBlanc != null) {
             pixelBlanc.dispose();
+        }
+        if (hugo != null) {
+            hugo.disposeSuperSaiyan();
         }
         if (textureHugo != null) {
             textureHugo.dispose();

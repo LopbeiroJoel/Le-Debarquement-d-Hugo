@@ -1,19 +1,23 @@
 package hugo.mob;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import hugo.entity.Creature;
+import hugo.entity.Projectile;
 import hugo.map.CarteJeu;
 import hugo.mob.spawn.MobSpawner;
 
+import java.util.List;
+
 public abstract class Mob extends Creature {
+
+    private static final int[] MOVEMENT_ANGLES = {0, 45, -45, 90, -90};
 
     private float attackCooldown = 0;
     private float attackInterval = 1;
+    private int xpReward;
 
     public Mob(Texture texture, float x, float y, int health, int speed,
                int width, int height, int hitboxSize) {
@@ -35,15 +39,26 @@ public abstract class Mob extends Creature {
         setMap(map);
         follow(target == null ? null : target.getHitbox());
 
-        float dx = dirX * getSpeed().getValue() * deltaTime;
-        float dy = dirY * getSpeed().getValue() * deltaTime;
-        Vector2 nextPosition = map.move(x, y, dx, dy);
+        chooseMovement(map, deltaTime, spawner);
+        update(deltaTime);
+    }
 
-        if (!spawner.hasRoom(this, nextPosition.x, nextPosition.y)) {
-            setDirection(0, 0);
+    private void chooseMovement(CarteJeu map, float deltaTime, MobSpawner spawner) {
+        if (dirX == 0 && dirY == 0) {
+            return;
         }
 
-        update(deltaTime);
+        float step = getSpeed().getValue() * deltaTime;
+        Vector2 direction = new Vector2();
+        for (int angle : MOVEMENT_ANGLES) {
+            direction.set(dirX, dirY).rotateDeg(angle);
+            Vector2 next = map.move(x, y, direction.x * step, direction.y * step);
+            if ((next.x != x || next.y != y) && spawner.hasRoom(this, next.x, next.y)) {
+                setDirection(direction.x, direction.y);
+                return;
+            }
+        }
+        setDirection(0, 0);
     }
 
     public void follow(Rectangle hugoHitbox) { //bah follow quoi
@@ -92,41 +107,65 @@ public abstract class Mob extends Creature {
     }
 
     public boolean attack(Creature target) {
-        if (target == null || target == this || life.isDead()
-                || target.getLife().isDead() || attackCooldown > 0) {
-            return false;
-        }
-
-        if (!getHitbox().overlaps(target.getHitbox())) {
+        if (target == null || target.getLife().isDead() || !startMeleeAttack(target)) {
             return false;
         }
 
         target.getLife().takeDamage(getAttackDamage().getValue());
+        return true;
+    }
+
+    public void attackTarget(Creature target, TextureRegion bullet, List<Projectile> projectiles) {
+        startMeleeAttack(target);
+    }
+
+    protected boolean startMeleeAttack(Creature target) {
+        if (!canAttack(target) || !getHitbox().overlaps(target.getHitbox())) {
+            return false;
+        }
+
         attackCooldown = attackInterval;
         onAttack();
         return true;
     }
 
+    protected boolean shootAt(Creature target, TextureRegion bullet, List<Projectile> projectiles, float range) {
+        if (!canAttack(target)) {
+            return false;
+        }
+
+        float startY = getCenterY();
+        float dx = target.getX() - x;
+        float dy = target.getCenterY() - startY;
+        float distance = (float) Math.hypot(dx, dy);
+        if (distance == 0 || distance > range || map.blocksShot(x, startY, target.getX(), target.getCenterY())) {
+            return false;
+        }
+
+        Projectile projectile = new Projectile(bullet, x, startY, dx / distance, dy / distance,
+            360f, 0f, range, 8f, 8f);
+        projectile.setMap(map);
+        projectiles.add(projectile);
+        attackCooldown = attackInterval;
+        return true;
+    }
+
+    private boolean canAttack(Creature target) {
+        return target != null && target != this && !life.isDead() && attackCooldown <= 0;
+    }
+
     protected void onAttack() {
+    }
+
+    public int getXpReward() {
+        return xpReward;
+    }
+
+    public void setXpReward(int xpReward) {
+        this.xpReward = xpReward;
     }
 
     public float getFeetY() {
         return y;
-    }
-
-    public void drawHealthBar(SpriteBatch batch, Texture pixel) {
-        float healthRatio = getLife().getCurrentLife() / getLife().getMaxLife();
-        float barWidth = 36f;
-        float barHeight = 5f;
-        float barX = x - barWidth / 2f;
-        float barY = y - height - 10f;
-
-        batch.setColor(Color.DARK_GRAY);
-        batch.draw(pixel, barX, barY, barWidth, barHeight);
-
-        batch.setColor(Color.RED);
-        batch.draw(pixel, barX, barY, barWidth * healthRatio, barHeight);
-
-        batch.setColor(Color.WHITE);
     }
 }

@@ -34,6 +34,7 @@ public final class CarteJeu {
     public final int height;
 
     private final List<ObjetDecor> entities = new ArrayList<>();
+    private final List<ObjetDecor> chests = new ArrayList<>();
 
     private final Map<Integer, List<ObjetDecor>> cells = new HashMap<>();
 
@@ -122,6 +123,9 @@ public final class CarteJeu {
         ObjetDecor objet = new ObjetDecor(identifiant, type, x, y);
 
         entities.add(objet);
+        if (objet.isChest()) {
+            chests.add(objet);
+        }
 
         entities.sort(
             Comparator.comparingDouble(element -> element.y)
@@ -374,27 +378,22 @@ public final class CarteJeu {
     }
 
     public void updateTriggers(float x, float y) {
-        for (ObjetDecor objet : entities) {
-            if (objet.isChest() && !objet.opened) {
-                float distance = Vector2.dst(
-                    x,
-                    y,
-                    objet.x,
-                    objet.y
-                );
+        for (ObjetDecor chest : chests) {
+            chest.checkChestTrigger(Vector2.dst2(x, y, chest.x, chest.y) < 68f * 68f);
+        }
+    }
 
-                if (distance < 68) {
-                    objet.open();
-
-                    chestListener.accept(objet.id);
-                }
+    public void updateChests(float delta) {
+        for (ObjetDecor chest : chests) {
+            if (chest.updateChest(delta)) {
+                chestListener.accept(chest.id);
             }
         }
     }
 
     public void reset() {
-        for (ObjetDecor objet : entities) {
-            objet.reset();
+        for (ObjetDecor chest : chests) {
+            chest.reset();
         }
     }
 

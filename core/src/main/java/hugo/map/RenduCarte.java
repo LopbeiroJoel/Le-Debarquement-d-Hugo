@@ -280,14 +280,15 @@ public final class RenduCarte implements Disposable {
         TextureRegion image = images.get(type);
 
         float gauche = objet.x - type.width / 2f;
-        float haut = objet.y - type.height;
+        float hauteur = objet.getRenderHeight();
+        float haut = objet.y - hauteur;
 
         dessin.draw(
             image,
             gauche,
             haut,
             type.width,
-            type.height
+            hauteur
         );
     }
 

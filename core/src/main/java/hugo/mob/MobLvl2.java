@@ -18,7 +18,7 @@ public class MobLvl2 extends Mob {
     private boolean facingLeft;
 
     public MobLvl2(Texture walkTexture, Texture biteTexture, float x, float y) {
-        super(walkTexture, x, y, 20, 120, SPRITE_SIZE, SPRITE_SIZE, 18, 0f);
+        super(walkTexture, x, y, 7, 320, SPRITE_SIZE, SPRITE_SIZE, 18, 0f);
         walkAnimation = new Animation<>(0.10f, readFrames(walkTexture));
         TextureRegion[] biteFrames = readFrames(biteTexture);
         biteAnimation = new Animation<>(0.09f, biteFrames);

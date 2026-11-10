@@ -2,8 +2,10 @@ package hugo.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import hugo.bonus.EasterEggGoku;
 
 public class Player extends Creature {
 
@@ -25,6 +27,7 @@ public class Player extends Creature {
     private static final float FIRST_LEVEL_XP = 50;
     private static final float LEVEL_XP_GROWTH = 1.3f;
 
+    private final EasterEggGoku easterEggGoku = new EasterEggGoku();
     private TextureRegion[] frames;
     private Animation<TextureRegion> walkAnimation;
     private float stateTime;
@@ -93,6 +96,8 @@ public class Player extends Creature {
 
     @Override
     public void update(float deltaTime) {
+        float previousX = x;
+        float previousY = y;
         super.update(deltaTime);
 
         if (dirX != 0 || dirY != 0) {
@@ -104,6 +109,24 @@ public class Player extends Creature {
         }
 
         fireTimer += deltaTime;
+        easterEggGoku.update(deltaTime, x != previousX || y != previousY);
+    }
+
+    public void toggleSuperSaiyan(Texture pixel) {
+        easterEggGoku.toggle(this, pixel);
+    }
+
+    public void disposeSuperSaiyan() {
+        easterEggGoku.dispose();
+    }
+
+    @Override
+    public void draw(SpriteBatch batch) {
+        if (easterEggGoku.isActive()) {
+            easterEggGoku.draw(batch, x, y, facingLeft);
+        } else {
+            super.draw(batch);
+        }
     }
 
     public boolean canShoot() {

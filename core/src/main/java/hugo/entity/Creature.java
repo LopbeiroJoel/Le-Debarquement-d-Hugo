@@ -1,5 +1,7 @@
 package hugo.entity;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
@@ -118,6 +120,22 @@ public abstract class Creature implements Entity {
         } else {
             batch.draw(sprite, x - width / 2f, y - height, width, height);
         }
+    }
+
+    public void drawHealthBar(SpriteBatch batch, Texture pixel) {
+        float healthRatio = getLife().getCurrentLife() / getLife().getMaxLife();
+        float barWidth = 36f;
+        float barHeight = 5f;
+        float barX = x - barWidth / 2f;
+        float barY = y - height - 10f;
+
+        batch.setColor(Color.DARK_GRAY);
+        batch.draw(pixel, barX, barY, barWidth, barHeight);
+
+        batch.setColor(Color.RED);
+        batch.draw(pixel, barX, barY, barWidth * healthRatio, barHeight);
+
+        batch.setColor(Color.WHITE);
     }
 
     public void setMap(CarteJeu map) {

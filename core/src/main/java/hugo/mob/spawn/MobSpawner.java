@@ -11,6 +11,7 @@ import hugo.mob.MobLvl2;
 import hugo.mob.MobLvl3;
 import hugo.mob.MobLvl4;
 import hugo.mob.MobLvl5;
+import hugo.mob.xp.MobXp;
 import hugo.wave.WaveManager;
 
 import java.util.ArrayList;
@@ -19,15 +20,15 @@ import java.util.List;
 import java.util.Map;
 
 public class MobSpawner implements Disposable {
-    private static final float SPAWN_DISTANCE = 220f;
+    private static final float SPAWN_DISTANCE = 750f;
     private static final float MIN_MOB_DISTANCE = 40f;
 
     private static final int[][] WAVE_COUNTS = {
-        {10,  0,  0,  0, 0},
-        {10, 15,  0,  0, 0},
-        {10, 10, 20,  0, 0},
-        {10, 10, 10, 20, 0},
-        { 9, 10, 15, 25, 1}
+        {5, 0,  0,  0, 0},
+        {5, 8,  0,  0, 0},
+        {5, 5, 10,  0, 0},
+        {5, 5,  5, 10, 0},
+        {4, 5,  8, 12, 1}
     };
 
     private final List<Mob> mobs = new ArrayList<>();
@@ -46,7 +47,15 @@ public class MobSpawner implements Disposable {
             float dx = nextX - other.getX();
             float dy = nextY - other.getY();
 
-            if (dx * dx + dy * dy < MIN_MOB_DISTANCE * MIN_MOB_DISTANCE) {
+            float nextDistance = dx * dx + dy * dy;
+            if (movingMob != null) {
+                float currentDx = movingMob.getX() - other.getX();
+                float currentDy = movingMob.getY() - other.getY();
+                if (nextDistance > currentDx * currentDx + currentDy * currentDy) {
+                    continue;
+                }
+            }
+            if (nextDistance < MIN_MOB_DISTANCE * MIN_MOB_DISTANCE) {
                 return false;
             }
         }
@@ -64,25 +73,49 @@ public class MobSpawner implements Disposable {
 
         int mobIndex = 0;
         double startAngle = Math.random() * 2 * Math.PI;
-        float distance = Math.max(SPAWN_DISTANCE, total * 7f);
+        float distance = Math.max(SPAWN_DISTANCE, total * 9f);
 
         for (int typeIndex = 0; typeIndex < counts.length; typeIndex++) {
             int level = typeIndex + 1;
 
             for (int i = 0; i < counts[typeIndex]; i++) {
                 double angle = startAngle + 2 * Math.PI * mobIndex / total;
-                float offsetX = (float) Math.cos(angle) * distance;
-                float offsetY = (float) Math.sin(angle) * distance;
-                Vector2 position = map.move(hugoX, hugoY, offsetX, offsetY);
+                Vector2 position = findSpawnPosition(map, hugoX, hugoY, angle, distance);
 
                 Mob mob = createMob(level, position.x, position.y);
                 mob.getAttackDamage().addMultiplier(waveManager.getDamageMultiplier());
+                mob.setXpReward(MobXp.rewardFor(level, waveManager.getCycle()));
                 mobs.add(mob);
                 mobIndex++;
             }
         }
 
         System.out.println("Wave " + waveManager.getWave() + ": " + mobIndex + " mobs spawned");
+    }
+
+    private Vector2 findSpawnPosition(CarteJeu map, float x, float y, double angle, float distance) {
+        Vector2 bestPosition = new Vector2(x, y);
+        float bestScore = -1f;
+
+        for (int attempt = 0; attempt < 48; attempt++) {
+            double direction = angle + attempt * Math.PI / 12;
+            float radius = distance + (attempt / 24) * 120f;
+            float dx = (float) Math.cos(direction) * radius;
+            float dy = (float) Math.sin(direction) * radius;
+            Vector2 position = map.move(x, y, dx, dy);
+            float distanceSquared = position.dst2(x, y);
+            boolean hasRoom = hasRoom(null, position.x, position.y);
+            if (hasRoom && distanceSquared >= 320f * 320f) {
+                return position;
+            }
+
+            float score = hasRoom ? distanceSquared : distanceSquared / 4f;
+            if (score > bestScore) {
+                bestPosition = position;
+                bestScore = score;
+            }
+        }
+        return bestPosition;
     }
 
     private Mob createMob(int level, float x, float y) {

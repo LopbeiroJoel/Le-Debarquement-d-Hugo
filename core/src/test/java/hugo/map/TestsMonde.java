@@ -10,7 +10,7 @@ public final class TestsMonde {
     public static void main(String[] args)throws Exception{
         CarteJeu map=new CarteJeu();
         check(map.width==4608&&map.height==3200,"dimensions conservees");
-        check(map.entityCount()==854,"objets charges et palissades laterales retirees");
+        check(map.entityCount()==660,"objets charges apres allegement");
         check(map.canMove(CarteJeu.playerBox(CarteJeu.SPAWN_X,CarteJeu.SPAWN_Y)),"depart libre");
         check(!map.canMove(CarteJeu.playerBox(0,500)),"bord gauche");
         check(!map.canMove(CarteJeu.playerBox(map.width,500)),"bord droit");
@@ -18,12 +18,15 @@ public final class TestsMonde {
         check(!map.canMove(CarteJeu.playerBox(500,map.height+1)),"bord bas");
         check(!map.canMove(CarteJeu.playerBox(650,2400)),"eau bloquante");
         for(int x:CarteJeu.BRIDGES){Vector2 p=map.move(x,2300,0,250);check(Math.abs(p.y-2550)<.02,"pont traversable "+x);}
-        EnumSet<TypeDecor> used=EnumSet.noneOf(TypeDecor.class);int chests=0,collisions=0;float previous=-1;
+        EnumSet<TypeDecor> used=EnumSet.noneOf(TypeDecor.class);int chests=0,collisions=0,bushes=0;float previous=-1;
         for(ObjetDecor e:map.getEntities()){
             check(e.y>=previous,"ordre de profondeur");previous=e.y;used.add(e.getType());
             if(e.getType().footprint.equals("tree")||e.getType()==TypeDecor.BUSH)check(!map.overlapsRoad(e),"vegetation hors des routes "+e.id);
+            if(e.getType()==TypeDecor.BUSH)bushes++;
             if(e.collision!=null){
                 collisions++;Rectangle r=e.collision;
+                Rectangle roadClearance=new Rectangle(r.x-24,r.y-24,r.width+48,r.height+48);
+                check(!map.areas.get("roads").intersects(roadClearance),"passage libre sur la route "+e.id);
                 check(!map.canMove(new Rectangle(r.x+r.width/2-1,r.y+r.height/2-1,2,2)),"collision "+e.id);
             }
             if(e.getType()==TypeDecor.FENCE_LONG){
@@ -33,6 +36,7 @@ public final class TestsMonde {
             }
             if(e.isChest())chests++;
         }
+        check(bushes==178,"moitie des buissons conserves");
         for(TypeDecor type:TypeDecor.values())if(type!=TypeDecor.OPEN_CHEST)check(used.contains(type),"asset conserve "+type);
         boolean[] reach=reachable(map);int cols=map.width/16+1;
         for(ObjetDecor e:map.getEntities())if(e.isChest()){
@@ -46,9 +50,22 @@ public final class TestsMonde {
         check(reach[56*cols+41]&&reach[56*cols+59],"clairiere accessible");
         final int[] rewards={0};map.setChestListener(id->rewards[0]++);
         ObjetDecor first=null;
-        for(ObjetDecor e:map.getEntities())if(e.isChest()){first=e;map.updateTriggers(e.x,e.y+45);map.updateTriggers(e.x,e.y+45);}
+        for(ObjetDecor e:map.getEntities())if(e.isChest()){first=e;map.updateTriggers(e.x,e.y+45);map.updateChests(0.5f);map.updateTriggers(e.x,e.y+45);}
         check(rewards[0]==chests&&chests==6,"une ouverture par caisse");
-        map.reset();map.updateTriggers(first.x,first.y+45);check(rewards[0]==chests+1,"reset des caisses");
+        map.updateTriggers(first.x,first.y+45);
+        map.updateChests(110f);
+        check(first.getType()==TypeDecor.OPEN_CHEST,"coffre encore ouvert");
+        map.updateChests(11f);
+        check(first.getType()==TypeDecor.CHEST,"coffre referme apres deux minutes");
+        map.updateTriggers(first.x,first.y+45);
+        map.updateChests(0.5f);
+        check(rewards[0]==chests,"pas de reouverture sans s'eloigner");
+        map.updateTriggers(CarteJeu.SPAWN_X,CarteJeu.SPAWN_Y);
+        map.updateTriggers(first.x,first.y+45);
+        map.updateChests(0.5f);
+        check(rewards[0]==chests+1,"coffre reutilisable");
+        map.reset();map.updateTriggers(first.x,first.y+45);map.updateChests(0.5f);
+        check(rewards[0]==chests+2,"reset des caisses");
         check("BASE MILITAIRE".equals(map.zoneAt(3100,800)),"base conservee");
         check("LES TRANCHEES".equals(map.zoneAt(3900,1900)),"tranchees conservees");
         check("FORET DU NORD".equals(map.zoneAt(500,400)),"foret conservee");
