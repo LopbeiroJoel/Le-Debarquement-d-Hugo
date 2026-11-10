@@ -69,6 +69,8 @@ public final class EcranCarte extends ScreenAdapter {
 
     private static final float XP_PAR_MOB = 10;
 
+    private boolean hugoMort = false;
+
     public EcranCarte(boolean modeVerification) {
         this.modeVerification = modeVerification;
     }
@@ -145,16 +147,22 @@ public final class EcranCarte extends ScreenAdapter {
         }
         double tempsEcoule = Math.min(delta, 0.05);
 
-        if (!upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
+        if (!hugoMort && !upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
             upgradeMenu.open();
         }
+        if (hugoMort) {
 
-        if (upgradeMenu.isOpen()) {
+        } else if (upgradeMenu.isOpen()) {
             upgradeMenu.update(hugo, largeur, hauteur);
         } else {
             deplacerCamera(tempsEcoule);
             for (Mob mob : mobSpawner.getMobs()) {
                 mob.updateAgainst(hugo, carte, (float) tempsEcoule, mobSpawner);
+                mob.attack(hugo);
+            }
+            if (hugo.getLife().isDead() && !hugoMort) {
+                hugoMort = true;
+                Gdx.app.log("PARTIE", "Hugo est mort au niveau " + hugo.getLevel());
             }
             mobSpawner.updateWave(waveManager, delta, carte, hugo.getX(), hugo.getY());
         }
