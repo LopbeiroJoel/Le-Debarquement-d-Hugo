@@ -157,7 +157,7 @@ public final class EcranCarte extends ScreenAdapter {
         }
 
         if (chestBonusMenu.isOpen()) {
-            chestBonusMenu.update(largeur, hauteur);
+            chestBonusMenu.update(hugo, largeur, hauteur);
         } else if (upgradeMenu.isOpen()) {
             upgradeMenu.update(hugo, largeur, hauteur);
         } else {
@@ -704,12 +704,13 @@ public final class EcranCarte extends ScreenAdapter {
 
         mobSpawner.dispose();
         upgradeMenu.dispose();
+        chestBonusMenu.dispose();
 
         if (pixelBlanc != null) {
             pixelBlanc.dispose();
         }
         if (hugo != null) {
-            hugo.disposeSuperSaiyan();
+            hugo.disposeAnimations();
         }
         if (textureHugo != null) {
             textureHugo.dispose();

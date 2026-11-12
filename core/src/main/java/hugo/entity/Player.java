@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import hugo.bonus.EasterEggGoku;
+import hugo.bonus.MateBonus;
+import hugo.bonus.animation.BonusAnimation;
 
 public class Player extends Creature {
 
@@ -27,6 +29,9 @@ public class Player extends Creature {
     private static final float FIRST_LEVEL_XP = 50;
     private static final float LEVEL_XP_GROWTH = 1.3f;
 
+    private final MateBonus mateBonus = new MateBonus();
+    private final BonusAnimation fullHealAnimation = new BonusAnimation("bonus/animation/hugo-full-heal.png", 0.16f);
+    private final BonusAnimation mateAnimation = new BonusAnimation("bonus/animation/hugo-drinks-mate.png", 0.5f);
     private final EasterEggGoku easterEggGoku = new EasterEggGoku();
     private TextureRegion[] frames;
     private Animation<TextureRegion> walkAnimation;
@@ -109,6 +114,15 @@ public class Player extends Creature {
         }
 
         fireTimer += deltaTime;
+        fullHealAnimation.update(deltaTime);
+        if (mateAnimation.isPlaying()) {
+            mateAnimation.update(deltaTime);
+            if (!mateAnimation.isPlaying()) {
+                mateBonus.activate(this);
+            }
+        } else {
+            mateBonus.update(this, deltaTime);
+        }
         easterEggGoku.update(deltaTime, x != previousX || y != previousY);
     }
 
@@ -116,13 +130,27 @@ public class Player extends Creature {
         easterEggGoku.toggle(this, pixel);
     }
 
-    public void disposeSuperSaiyan() {
+    public void playFullHealAnimation() {
+        fullHealAnimation.play();
+    }
+
+    public void drinkMate() {
+        mateAnimation.play();
+    }
+
+    public void disposeAnimations() {
+        mateAnimation.dispose();
+        fullHealAnimation.dispose();
         easterEggGoku.dispose();
     }
 
     @Override
     public void draw(SpriteBatch batch) {
-        if (easterEggGoku.isActive()) {
+        if (mateAnimation.isPlaying()) {
+            mateAnimation.draw(batch, x, y, width, height, facingLeft);
+        } else if (fullHealAnimation.isPlaying()) {
+            fullHealAnimation.draw(batch, x, y, width, height, facingLeft);
+        } else if (easterEggGoku.isActive()) {
             easterEggGoku.draw(batch, x, y, facingLeft);
         } else {
             super.draw(batch);
