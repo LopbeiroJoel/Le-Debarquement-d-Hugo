@@ -111,7 +111,7 @@ public abstract class Mob extends Creature {
             return false;
         }
 
-        target.getLife().takeDamage(getAttackDamage().getValue());
+        target.takeDamage(getAttackDamage().getValue());
         return true;
     }
 

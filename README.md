@@ -1,79 +1,67 @@
-# Le Débarquement d'Hugo
+# Le Débarquement d’Hugo
 
-Jeu 2D (survivor-like) en Java avec libGDX, développé par Joël et Thomas.
-
-## Prérequis
-- JDK 25 (Temurin conseillé)
-- VS Code + extension « Extension Pack for Java »
+Jeu de survie 2D développé par Joël et Thomas, en Java avec libGDX. Hugo tire automatiquement sur l’ennemi le plus proche à portée. Déplace-toi, ouvre des coffres et gagne de l’XP pour améliorer ses stats.
 
 ## Lancer le jeu
-- macOS / Linux / WSL : `./gradlew hugo:run`
-- Windows : `gradlew.bat hugo:run`
 
-## Répartition
-- **Joël** : monde, décor, collisions, caméra et interface.
-- **Thomas** : personnage, tirs, statistiques et améliorations.
+Installe un JDK 25. Depuis la racine du dépôt, lance la commande qui correspond à ton terminal.
 
-La map est intégrée dans `main`. Le code de la carte est regroupé dans `core/src/main/java/hugo/map/`.
-
-## Tester la map
+**Ubuntu, WSL, Linux ou macOS**
 
 ```bash
-git fetch origin
-git switch main
-git pull --ff-only
 ./gradlew hugo:run
 ```
 
-Le jeu ouvre la map avec une caméra libre.
+**Windows PowerShell**
 
-- ZQSD, WASD ou flèches : caméra libre.
-- Molette ou + / - : zoom.
-- M : petite carte.
-- R : retour au départ.
-- F1 : collisions.
+```powershell
+.\gradlew.bat hugo:run
+```
 
-Hugo reste à coder par Thomas. Ses sprites sont disponibles dans `assets/hero-v2.png`. Les éléments de décor restent indépendants ; la map conserve ses collisions, ses deux ponts, ses six caisses et les arbres personnalisés.
+La cinématique dure 30 secondes. Appuie sur **Échap** pour la passer, puis clique sur **Start** ou appuie sur **Entrée** pour jouer.
 
-## Vérifier le portage
+## Commandes
+
+| Commande | Action |
+| --- | --- |
+| ZQSD, WASD ou flèches | Déplacer Hugo |
+| Molette ou touches + et − | Régler le zoom |
+| M | Afficher ou masquer la mini-carte |
+| R | Réinitialiser le zoom et les coffres |
+| F1 | Afficher ou masquer les collisions |
+| F8 | Supprimer les mobs et leurs projectiles |
+| F9 | Activer ou désactiver le mode Goku |
+
+## Vagues et progression
+
+La première vague arrive au lancement de la partie. Les suivantes se déclenchent toutes les **25 secondes de jeu**, même si des ennemis sont encore vivants. Un cycle compte cinq vagues de **5, 13, 20, 25 et 30 mobs**. Le boss arrive avec la cinquième vague. Le cycle suivant repart à la vague 1 après **2 min 05 de jeu**.
+
+L’XP gagnée dépend du type de mob et du cycle. Le premier niveau à gagner demande **50 XP**. À chaque montée de niveau, le jeu se met en pause et propose **trois améliorations**. Les barres affichent la progression de Hugo et les PV au-dessus des personnages.
+
+## Coffres
+
+Approche-toi d’un coffre pour l’ouvrir. Le coffre se referme après **deux minutes de jeu**. Le chrono des vagues est en pause pendant les menus.
+
+Les cartes suivantes sont disponibles sur la branche `animation`.
+
+| Carte | Effet |
+| --- | --- |
+| Soin complet | Rend tous les PV à Hugo. |
+| Maté | Multiplie la vitesse par 2,25 et le délai entre les tirs par 0,175 pendant 30 secondes. |
+| Tabac | Coûte la moitié des PV actuels, triple les dégâts et multiplie le délai entre les tirs par 0,15 pendant 30 secondes. |
+
+Les boosts du Maté et du Tabac démarrent après leur animation.
+
+## Développement
+
+- **Joël** travaille sur le monde, le décor, les collisions, la caméra et l’interface.
+- **Thomas** travaille sur le personnage, les tirs, les statistiques et les améliorations.
+- `core/` contient le code du jeu et `hugo/` le lanceur de bureau LWJGL3.
+- `assets/` contient les sprites, la carte et la cinématique.
 
 ```bash
 ./gradlew core:check
 ./gradlew hugo:run --args=--smoke-test
 ```
 
-Le second contrôle ouvre une vraie fenêtre, rend 90 images sur trois zones, puis ferme l’application. Les captures sont enregistrées dans `hugo/build/smoke/`.
-
----
-
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
-
-This project was generated with a template including simple application launchers and a main class extending `Game` that sets the first screen.
-
-## Platforms
-
-- `core`: Main module with the application logic shared by all platforms.
-- `hugo`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
-
-## Gradle
-
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
-
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `idea`: generates IntelliJ project data.
-- `hugo:jar`: builds application's runnable jar, which can be found at `hugo/build/libs`.
-- `hugo:run`: starts the application.
-- `test`: runs unit tests (if any).
-
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+Le test de lancement ouvre directement la carte, rend 90 images sur trois zones et se termine. Les captures sont dans `hugo/build/smoke/`. La commande `./gradlew hugo:jar` produit le JAR dans `hugo/build/libs/`.

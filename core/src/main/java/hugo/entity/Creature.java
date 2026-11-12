@@ -44,6 +44,10 @@ public abstract class Creature implements Entity {
         return life;
     }
 
+    public void takeDamage(float damage) {
+        getLife().takeDamage(damage);
+    }
+
     public Stat getSpeed() {
         return speed;
     }

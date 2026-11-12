@@ -49,6 +49,8 @@ public final class EcranCarte extends ScreenAdapter {
     private final List<Projectile> projectiles = new ArrayList<>();
     private final List<Projectile> enemyProjectiles = new ArrayList<>();
     private TextureRegion bulletSprite;
+    private Texture textureBalleHugo;
+    private TextureRegion balleHugo;
 
     private final XpBar xpBar = new XpBar();
     private final ChestBonusMenu chestBonusMenu = new ChestBonusMenu();
@@ -123,6 +125,9 @@ public final class EcranCarte extends ScreenAdapter {
 
         pixelBlanc = new Texture(image);
         bulletSprite = new TextureRegion(pixelBlanc);
+        textureBalleHugo = new Texture("projectiles/balle-hugo-cuivre.png");
+        balleHugo = new TextureRegion(textureBalleHugo);
+        balleHugo.flip(false, true);
 
         image.dispose();
     }
@@ -171,6 +176,7 @@ public final class EcranCarte extends ScreenAdapter {
             for (Projectile projectile : enemyProjectiles) {
                 projectile.update((float) tempsEcoule);
                 if (projectile.isActive() && projectile.getHitbox().overlaps(hugo.getHitbox())) {
+                    hugo.takeDamage(projectile.getDamage());
                     projectile.destroy();
                 }
             }
@@ -233,7 +239,7 @@ public final class EcranCarte extends ScreenAdapter {
         if (hugo.canShoot()) {
               Mob cible = trouverMobLePlusProche();
             if (cible != null) {                                   
-                Projectile projectile = hugo.shoot(bulletSprite, cible); 
+                Projectile projectile = hugo.shoot(balleHugo, cible);
                 projectile.setMap(carte);
                 projectiles.add(projectile);
             }
@@ -711,6 +717,9 @@ public final class EcranCarte extends ScreenAdapter {
         }
         if (hugo != null) {
             hugo.disposeAnimations();
+        }
+        if (textureBalleHugo != null) {
+            textureBalleHugo.dispose();
         }
         if (textureHugo != null) {
             textureHugo.dispose();

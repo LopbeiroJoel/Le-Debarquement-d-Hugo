@@ -16,12 +16,20 @@ public class Projectile implements Entity {
     private final float damage;
     private final float maxRange;
     private final float width, height;
+    private final float spriteWidth, spriteHeight;
+    private final float rotation;
     private float traveled;
     private boolean active;
     private final Rectangle hitbox = new Rectangle();
     private CarteJeu map;
 
     public Projectile(TextureRegion sprite, float x, float y, float dirX, float dirY, float speed, float damage, float maxRange, float width, float height) {
+        this(sprite, x, y, dirX, dirY, speed, damage, maxRange, width, height, width, height, 0f);
+    }
+
+    public Projectile(TextureRegion sprite, float x, float y, float dirX, float dirY, float speed,
+            float damage, float maxRange, float width, float height, float spriteWidth, float spriteHeight,
+            float rotation) {
         this.sprite = sprite;
         this.x = x;
         this.y = y;
@@ -32,6 +40,9 @@ public class Projectile implements Entity {
         this.maxRange = maxRange;
         this.width = width;
         this.height = height;
+        this.spriteWidth = spriteWidth;
+        this.spriteHeight = spriteHeight;
+        this.rotation = rotation;
         this.traveled = 0;
         this.active = true;
     }
@@ -71,7 +82,10 @@ public class Projectile implements Entity {
         if (!active) {
             return;
         }
-        batch.draw(sprite, x - width / 2f, y - height / 2f, width, height);
+        float halfWidth = spriteWidth / 2f;
+        float halfHeight = spriteHeight / 2f;
+        batch.draw(sprite, x - halfWidth, y - halfHeight, halfWidth, halfHeight,
+            spriteWidth, spriteHeight, 1f, 1f, rotation);
     }
 
     public Rectangle getHitbox() {
