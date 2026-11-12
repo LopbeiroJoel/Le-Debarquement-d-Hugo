@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import hugo.bonus.EasterEggGoku;
 import hugo.bonus.MateBonus;
+import hugo.bonus.TobaccoBonus;
 import hugo.bonus.animation.BonusAnimation;
 
 public class Player extends Creature {
@@ -30,8 +31,10 @@ public class Player extends Creature {
     private static final float LEVEL_XP_GROWTH = 1.3f;
 
     private final MateBonus mateBonus = new MateBonus();
+    private final TobaccoBonus tobaccoBonus = new TobaccoBonus();
     private final BonusAnimation fullHealAnimation = new BonusAnimation("bonus/animation/hugo-full-heal.png", 0.16f);
     private final BonusAnimation mateAnimation = new BonusAnimation("bonus/animation/hugo-drinks-mate.png", 0.5f);
+    private final BonusAnimation tobaccoAnimation = new BonusAnimation("bonus/animation/hugo-smokes.png", 0.45f);
     private final EasterEggGoku easterEggGoku = new EasterEggGoku();
     private TextureRegion[] frames;
     private Animation<TextureRegion> walkAnimation;
@@ -114,6 +117,14 @@ public class Player extends Creature {
         }
 
         fireTimer += deltaTime;
+        if (tobaccoAnimation.isPlaying()) {
+            tobaccoAnimation.update(deltaTime);
+            if (!tobaccoAnimation.isPlaying()) {
+                tobaccoBonus.activate(this);
+            }
+        } else {
+            tobaccoBonus.update(this, deltaTime);
+        }
         fullHealAnimation.update(deltaTime);
         if (mateAnimation.isPlaying()) {
             mateAnimation.update(deltaTime);
@@ -138,7 +149,12 @@ public class Player extends Creature {
         mateAnimation.play();
     }
 
+    public void useTobacco() {
+        tobaccoAnimation.play();
+    }
+
     public void disposeAnimations() {
+        tobaccoAnimation.dispose();
         mateAnimation.dispose();
         fullHealAnimation.dispose();
         easterEggGoku.dispose();
@@ -146,7 +162,9 @@ public class Player extends Creature {
 
     @Override
     public void draw(SpriteBatch batch) {
-        if (mateAnimation.isPlaying()) {
+        if (tobaccoAnimation.isPlaying()) {
+            tobaccoAnimation.draw(batch, x, y, width, height, facingLeft);
+        } else if (mateAnimation.isPlaying()) {
             mateAnimation.draw(batch, x, y, width, height, facingLeft);
         } else if (fullHealAnimation.isPlaying()) {
             fullHealAnimation.draw(batch, x, y, width, height, facingLeft);

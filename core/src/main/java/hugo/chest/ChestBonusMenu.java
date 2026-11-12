@@ -17,6 +17,7 @@ public final class ChestBonusMenu {
     private final Rectangle closeButton = new Rectangle();
     private Texture heartIcon;
     private Texture mateIcon;
+    private Texture tobaccoIcon;
     private boolean open;
 
     public boolean isOpen() {
@@ -50,6 +51,9 @@ public final class ChestBonusMenu {
             } else if (getCardBounds(1, width, height).contains(mouseX, mouseY)) {
                 player.drinkMate();
                 close();
+            } else if (getCardBounds(-1, width, height).contains(mouseX, mouseY)) {
+                player.useTobacco();
+                close();
             } else if (closeButton.contains(mouseX, mouseY)) {
                 close();
             }
@@ -67,6 +71,9 @@ public final class ChestBonusMenu {
         if (mateIcon == null) {
             mateIcon = new Texture("bonus/mate.png");
         }
+        if (tobaccoIcon == null) {
+            tobaccoIcon = new Texture("bonus/tobacco.png");
+        }
         batch.setColor(0, 0, 0, 0.62f);
         batch.draw(pixel, 0, 0, width, height);
         font.setColor(Color.WHITE);
@@ -77,15 +84,22 @@ public final class ChestBonusMenu {
             batch.setColor(0.28f, 0.26f, 0.16f, 1);
             batch.draw(pixel, card.x, card.y, card.width, card.height);
             float centerX = card.x + card.width / 2f;
-            if (i >= 0) {
-                Texture icon = i == 0 ? heartIcon : mateIcon;
-                String name = i == 0 ? "Soin complet" : "Maté";
-                float iconSize = Math.min(card.width * 0.70f, card.height * 0.60f);
-                batch.setColor(Color.WHITE);
-                batch.draw(icon, centerX - iconSize / 2f, card.y + card.height * 0.30f, iconSize, iconSize);
-                drawCentered(batch, font, name, centerX, card.y + card.height * 0.24f);
-            } else {
-                drawCentered(batch, font, "Bonus a venir", centerX, height / 2f + 5);
+            Texture icon = switch (i) {
+                case -1 -> tobaccoIcon;
+                case 0 -> heartIcon;
+                default -> mateIcon;
+            };
+            String name = switch (i) {
+                case -1 -> "Tabac";
+                case 0 -> "Soin complet";
+                default -> "Maté";
+            };
+            float iconSize = Math.min(card.width * 0.70f, card.height * 0.54f);
+            batch.setColor(Color.WHITE);
+            batch.draw(icon, centerX - iconSize / 2f, card.y + card.height * 0.40f, iconSize, iconSize);
+            drawCentered(batch, font, name, centerX, card.y + card.height * 0.33f);
+            if (i == -1) {
+                drawCentered(batch, font, "-50 % des PV actuels", centerX, card.y + card.height * 0.17f);
             }
         }
 
@@ -102,6 +116,9 @@ public final class ChestBonusMenu {
         }
         if (mateIcon != null) {
             mateIcon.dispose();
+        }
+        if (tobaccoIcon != null) {
+            tobaccoIcon.dispose();
         }
     }
 
