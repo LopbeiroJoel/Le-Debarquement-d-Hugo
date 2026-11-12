@@ -10,11 +10,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import hugo.entity.Creature;
+import hugo.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -34,6 +36,7 @@ public final class RenduCarte implements Disposable {
 
     // ce qu'on voit à l'écran
     private final Rectangle zoneVisible = new Rectangle();
+    private final Texture pixelBlanc = creerPixelBlanc();
 
     private final FrameBuffer imagePetiteCarte;
     public final TextureRegion overview;
@@ -144,8 +147,32 @@ public final class RenduCarte implements Disposable {
 
         // arbres, maisons, barrières et perso
         dessinerDecorEtPersonnages(dessin);
+        if (player instanceof Player hugo && hugo.getWhiskyTime() > 0f) {
+            dessinerEffetWhisky(dessin, hugo.getWhiskyTime());
+        }
 
         dessin.end();
+    }
+
+    private void dessinerEffetWhisky(SpriteBatch dessin, float tempsRestant) {
+        float teinte = (MathUtils.sin(tempsRestant * 1.8f) + 1f) / 2f;
+        float rouge = MathUtils.lerp(0.58f, 1f, teinte);
+        float vert = MathUtils.lerp(0.24f, 0.76f, teinte);
+        float bleu = MathUtils.lerp(0.88f, 0.16f, teinte);
+        float opacite = 0.30f * Math.min(1f, tempsRestant);
+
+        dessin.setColor(rouge, vert, bleu, opacite);
+        dessin.draw(pixelBlanc, zoneVisible.x, zoneVisible.y, zoneVisible.width, zoneVisible.height);
+        dessin.setColor(Color.WHITE);
+    }
+
+    private static Texture creerPixelBlanc() {
+        Pixmap pixel = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixel.setColor(Color.WHITE);
+        pixel.fill();
+        Texture texture = new Texture(pixel);
+        pixel.dispose();
+        return texture;
     }
 
     // regarde quelle partie de la map est à l'écran
@@ -362,5 +389,6 @@ public final class RenduCarte implements Disposable {
         images.dispose();
         imagePetiteCarte.dispose();
         contours.dispose();
+        pixelBlanc.dispose();
     }
 }

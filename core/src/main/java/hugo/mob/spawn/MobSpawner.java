@@ -2,6 +2,7 @@ package hugo.mob.spawn;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
 import hugo.map.CarteJeu;
@@ -33,6 +34,8 @@ public class MobSpawner implements Disposable {
 
     private final List<Mob> mobs = new ArrayList<>();
     private final Map<String, Texture> textures = new HashMap<>();
+    private TextureRegion projectileSprite;
+    private boolean hasDefeatedMobs;
 
     public List<Mob> getMobs() {
         return mobs;
@@ -83,6 +86,9 @@ public class MobSpawner implements Disposable {
                 Vector2 position = findSpawnPosition(map, hugoX, hugoY, angle, distance);
 
                 Mob mob = createMob(level, position.x, position.y);
+                if (level == 4 || level == 5) {
+                    mob.setProjectileSprite(getProjectileSprite());
+                }
                 mob.getAttackDamage().addMultiplier(waveManager.getDamageMultiplier());
                 mob.setXpReward(MobXp.rewardFor(level, waveManager.getCycle()));
                 mobs.add(mob);
@@ -141,18 +147,37 @@ public class MobSpawner implements Disposable {
         };
     }
 
+    public void defeat(Mob mob) {
+        mob.takeDamage(mob.getLife().getCurrentLife());
+        hasDefeatedMobs = true;
+    }
+
     public void updateWave(WaveManager waveManager, float delta, CarteJeu map, float hugoX, float hugoY) {
+        if (hasDefeatedMobs) {
+            mobs.removeIf(mob -> mob.getLife().isDead());
+            hasDefeatedMobs = false;
+        }
+
         if (waveManager.update(delta)) {
             spawnWave(waveManager, map, hugoX, hugoY);
         }
     }
 
-    private Texture texture(String name) {
-        return textures.computeIfAbsent(name, this::loadTexture);
+    private TextureRegion getProjectileSprite() {
+        if (projectileSprite == null) {
+            Texture texture = textures.computeIfAbsent("projectiles/balle-hugo-cuivre.png", this::loadTexture);
+            projectileSprite = new TextureRegion(texture);
+            projectileSprite.flip(false, true);
+        }
+        return projectileSprite;
     }
 
-    private Texture loadTexture(String name) {
-        Texture texture = new Texture(Gdx.files.internal("mobs/" + name), true);
+    private Texture texture(String name) {
+        return textures.computeIfAbsent("mobs/" + name, this::loadTexture);
+    }
+
+    private Texture loadTexture(String path) {
+        Texture texture = new Texture(Gdx.files.internal(path), true);
         texture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Nearest);
         return texture;
     }
@@ -162,6 +187,7 @@ public class MobSpawner implements Disposable {
             texture.dispose();
         }
         textures.clear();
+        projectileSprite = null;
         mobs.clear();
     }
 }

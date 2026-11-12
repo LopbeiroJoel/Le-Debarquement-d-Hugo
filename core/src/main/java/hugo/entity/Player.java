@@ -5,11 +5,15 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 import hugo.bonus.EasterEggGoku;
 import hugo.bonus.HelmetBonus;
 import hugo.bonus.MateBonus;
 import hugo.bonus.TobaccoBonus;
+import hugo.bonus.WhiskyBonus;
 import hugo.bonus.animation.BonusAnimation;
+import hugo.bonus.animation.ParachuteAnimation;
 import hugo.ui.LIFE_HUGO_BARRE;
 
 public class Player extends Creature {
@@ -37,10 +41,17 @@ public class Player extends Creature {
     private final HelmetBonus helmetBonus = new HelmetBonus();
     private final MateBonus mateBonus = new MateBonus();
     private final TobaccoBonus tobaccoBonus = new TobaccoBonus();
+    private final WhiskyBonus whiskyBonus = new WhiskyBonus();
+    private final Matrix4 normalTransform = new Matrix4();
+    private final Matrix4 whiskyTransform = new Matrix4();
     private final BonusAnimation fullHealAnimation = new BonusAnimation("bonus/animation/hugo-full-heal.png", 0.16f);
     private final BonusAnimation mateAnimation = new BonusAnimation("bonus/animation/hugo-drinks-mate.png", 0.5f);
     private final BonusAnimation tobaccoAnimation = new BonusAnimation("bonus/animation/hugo-smokes.png", 0.45f);
     private final BonusAnimation helmetAnimation = new BonusAnimation("bonus/animation/hugo-equips-helmet.png", 0.20f);
+    private final ParachuteAnimation parachuteAnimation = new ParachuteAnimation();
+    private final BonusAnimation whiskyAnimation = new BonusAnimation("bonus/animation/hugo-drinks-whisky.png", 0.36f);
+    private boolean parachuteRequested;
+    private boolean parachuteStrike;
     private TextureRegion wornHelmet;
     private final EasterEggGoku easterEggGoku = new EasterEggGoku();
     private TextureRegion[] frames;
@@ -111,6 +122,10 @@ public class Player extends Creature {
 
     @Override
     public void update(float deltaTime) {
+        parachuteStrike = parachuteRequested;
+        parachuteRequested = false;
+        parachuteAnimation.update(deltaTime);
+
         float previousX = x;
         float previousY = y;
         super.update(deltaTime);
@@ -141,6 +156,13 @@ public class Player extends Creature {
             tobaccoBonus.update(this, deltaTime);
         }
         fullHealAnimation.update(deltaTime);
+        whiskyBonus.update(deltaTime);
+        if (whiskyAnimation.isPlaying()) {
+            whiskyAnimation.update(deltaTime);
+            if (!whiskyAnimation.isPlaying()) {
+                whiskyBonus.activate();
+            }
+        }
         if (mateAnimation.isPlaying()) {
             mateAnimation.update(deltaTime);
             if (!mateAnimation.isPlaying()) {
@@ -168,6 +190,23 @@ public class Player extends Creature {
         tobaccoAnimation.play();
     }
 
+    public void drinkWhisky() {
+        whiskyAnimation.play();
+    }
+
+    public float getWhiskyTime() {
+        return whiskyBonus.getRemainingTime();
+    }
+
+    public void useParachute() {
+        parachuteAnimation.play();
+        parachuteRequested = true;
+    }
+
+    public boolean hasParachuteStrike() {
+        return parachuteStrike;
+    }
+
     public void equipHelmet() {
         if (helmetBonus.isActive()) {
             helmetBonus.activate();
@@ -188,6 +227,8 @@ public class Player extends Creature {
     }
 
     public void disposeAnimations() {
+        parachuteAnimation.dispose();
+        whiskyAnimation.dispose();
         helmetAnimation.dispose();
         if (wornHelmet != null) {
             wornHelmet.getTexture().dispose();
@@ -200,12 +241,31 @@ public class Player extends Creature {
 
     @Override
     public void draw(SpriteBatch batch) {
+        parachuteAnimation.draw(batch, x, y);
+
+        float whiskyTime = getWhiskyTime();
+        if (whiskyTime > 0f) {
+            float lean = 9f * MathUtils.sin(whiskyTime * 5f) * Math.min(1f, whiskyTime);
+            normalTransform.set(batch.getTransformMatrix());
+            whiskyTransform.set(normalTransform).translate(x, y, 0f)
+                .rotate(Vector3.Z, lean).translate(-x, -y, 0f);
+            batch.setTransformMatrix(whiskyTransform);
+            drawBody(batch);
+            batch.setTransformMatrix(normalTransform);
+        } else {
+            drawBody(batch);
+        }
+    }
+
+    private void drawBody(SpriteBatch batch) {
         if (helmetAnimation.isPlaying()) {
             helmetAnimation.draw(batch, x, y, width, height, facingLeft);
             return;
         }
 
-        if (tobaccoAnimation.isPlaying()) {
+        if (whiskyAnimation.isPlaying()) {
+            whiskyAnimation.draw(batch, x, y, width, height, facingLeft);
+        } else if (tobaccoAnimation.isPlaying()) {
             tobaccoAnimation.draw(batch, x, y, width, height, facingLeft);
         } else if (mateAnimation.isPlaying()) {
             mateAnimation.draw(batch, x, y, width, height, facingLeft);

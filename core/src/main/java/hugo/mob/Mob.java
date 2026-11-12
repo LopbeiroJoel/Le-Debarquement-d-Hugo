@@ -2,9 +2,11 @@ package hugo.mob;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import hugo.entity.Creature;
+import hugo.entity.Player;
 import hugo.entity.Projectile;
 import hugo.map.CarteJeu;
 import hugo.mob.spawn.MobSpawner;
@@ -18,6 +20,7 @@ public abstract class Mob extends Creature {
     private float attackCooldown = 0;
     private float attackInterval = 1;
     private int xpReward;
+    private TextureRegion projectileSprite;
 
     public Mob(Texture texture, float x, float y, int health, int speed,
                int width, int height, int hitboxSize) {
@@ -36,6 +39,11 @@ public abstract class Mob extends Creature {
     }
 
     public void updateAgainst(Creature target, CarteJeu map, float deltaTime, MobSpawner spawner) {
+        if (target instanceof Player player && player.hasParachuteStrike()) {
+            spawner.defeat(this);
+            return;
+        }
+
         setMap(map);
         follow(target == null ? null : target.getHitbox());
 
@@ -142,8 +150,15 @@ public abstract class Mob extends Creature {
             return false;
         }
 
-        Projectile projectile = new Projectile(bullet, x, startY, dx / distance, dy / distance,
-            360f, 0f, range, 8f, 8f);
+        Projectile projectile;
+        if (projectileSprite == null) {
+            projectile = new Projectile(bullet, x, startY, dx / distance, dy / distance,
+                360f, 0f, range, 8f, 8f);
+        } else {
+            float rotation = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees;
+            projectile = new Projectile(projectileSprite, x, startY, dx / distance, dy / distance,
+                360f, 0f, range, 8f, 8f, 24f, 9f, rotation);
+        }
         projectile.setMap(map);
         projectiles.add(projectile);
         attackCooldown = attackInterval;
@@ -155,6 +170,10 @@ public abstract class Mob extends Creature {
     }
 
     protected void onAttack() {
+    }
+
+    public void setProjectileSprite(TextureRegion projectileSprite) {
+        this.projectileSprite = projectileSprite;
     }
 
     public int getXpReward() {

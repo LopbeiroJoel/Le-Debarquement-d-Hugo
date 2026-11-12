@@ -25,10 +25,12 @@ public final class ChestBonusMenu {
     private Texture mateIcon;
     private Texture tobaccoIcon;
     private Texture helmetIcon;
+    private Texture parachuteIcon;
+    private Texture whiskyIcon;
     private boolean open;
 
     private enum Bonus {
-        TABAC, SOIN_COMPLET, MATE, CASQUE
+        TABAC, SOIN_COMPLET, MATE, CASQUE, PARACHUTE, WHISKY
     }
 
     private List<Bonus> choices = List.of();
@@ -78,6 +80,8 @@ public final class ChestBonusMenu {
                         }
                         case MATE -> player.drinkMate();
                         case CASQUE -> player.equipHelmet();
+                        case PARACHUTE -> player.useParachute();
+                        case WHISKY -> player.drinkWhisky();
                     }
                     close();
                     return;
@@ -107,6 +111,12 @@ public final class ChestBonusMenu {
         if (helmetIcon == null) {
             helmetIcon = new Texture("bonus/helmet.png");
         }
+        if (parachuteIcon == null) {
+            parachuteIcon = new Texture("bonus/parachute.png");
+        }
+        if (whiskyIcon == null) {
+            whiskyIcon = new Texture("bonus/whisky.png");
+        }
         batch.setColor(0, 0, 0, 0.62f);
         batch.draw(pixel, 0, 0, width, height);
         font.setColor(Color.WHITE);
@@ -125,12 +135,16 @@ public final class ChestBonusMenu {
                 case SOIN_COMPLET -> heartIcon;
                 case MATE -> mateIcon;
                 case CASQUE -> helmetIcon;
+                case PARACHUTE -> parachuteIcon;
+                case WHISKY -> whiskyIcon;
             };
             String name = switch (bonus) {
                 case TABAC -> "Tabac";
                 case SOIN_COMPLET -> "Soin complet";
                 case MATE -> "Maté";
                 case CASQUE -> "Casque";
+                case PARACHUTE -> "Parachute";
+                case WHISKY -> "Whisky";
             };
             float iconSize = Math.min(card.width * 0.70f, card.height * 0.54f);
             batch.setColor(Color.WHITE);
@@ -140,6 +154,10 @@ public final class ChestBonusMenu {
                 drawCentered(batch, font, "Cigarette", centerX, card.y + card.height * 0.17f);
             } else if (bonus == Bonus.CASQUE) {
                 drawCentered(batch, font, "Invincible 30 s", centerX, card.y + card.height * 0.17f);
+            } else if (bonus == Bonus.PARACHUTE) {
+                drawCentered(batch, font, "Elimine tous les mobs", centerX, card.y + card.height * 0.17f);
+            } else if (bonus == Bonus.WHISKY) {
+                drawCentered(batch, font, "Teinte variable 30 s", centerX, card.y + card.height * 0.17f);
             }
         }
 
@@ -162,6 +180,12 @@ public final class ChestBonusMenu {
         }
         if (helmetIcon != null) {
             helmetIcon.dispose();
+        }
+        if (parachuteIcon != null) {
+            parachuteIcon.dispose();
+        }
+        if (whiskyIcon != null) {
+            whiskyIcon.dispose();
         }
     }
 
