@@ -4,6 +4,7 @@ package hugo.map;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -23,10 +24,12 @@ import hugo.admin.Admin;
 import hugo.chest.ChestBonusMenu;
 import hugo.entity.Player;
 import hugo.entity.Projectile;
+import hugo.gameover.GameOverMenu;
 import hugo.mob.Mob;
 import hugo.mob.spawn.MobSpawner;
 import hugo.upgrade.UpgradeMenu;
 import hugo.wave.WaveManager;
+
 
 
 public final class EcranCarte extends ScreenAdapter {
@@ -76,6 +79,12 @@ public final class EcranCarte extends ScreenAdapter {
 
     private InputAdapter commandesSouris;
 
+
+    private boolean hugoMort = false;
+
+    private int mobsTues = 0;
+
+    private final GameOverMenu gameOverMenu = new GameOverMenu();
 
     public EcranCarte(boolean modeVerification) {
         this.modeVerification = modeVerification;
@@ -157,12 +166,18 @@ public final class EcranCarte extends ScreenAdapter {
         }
         double tempsEcoule = Math.min(delta, 0.05);
 
-        if (!chestBonusMenu.isOpen() && !upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
+        if (!hugoMort && !chestBonusMenu.isOpen() && !upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
             upgradeMenu.open();
         }
 
-        if (chestBonusMenu.isOpen()) {
+        if (hugoMort) {
+            if (gameOverMenu.update(largeur, hauteur)) {
+                relancerPartie();
+                return;
+            }
+        } else if (chestBonusMenu.isOpen()) {
             chestBonusMenu.update(hugo, largeur, hauteur);
+
         } else if (upgradeMenu.isOpen()) {
             upgradeMenu.update(hugo, largeur, hauteur);
         } else {
@@ -171,7 +186,12 @@ public final class EcranCarte extends ScreenAdapter {
             carte.updateTriggers(hugo.getX(), hugo.getY());
             for (Mob mob : mobSpawner.getMobs()) {
                 mob.updateAgainst(hugo, carte, (float) tempsEcoule, mobSpawner);
+                mob.attack(hugo);
                 mob.attackTarget(hugo, bulletSprite, enemyProjectiles);
+            }
+            if (hugo.getLife().isDead() && !hugoMort) {
+                hugoMort = true;
+                gameOverMenu.open(hugo.getLevel(), waveManager.getWave(), mobsTues);
             }
             for (Projectile projectile : enemyProjectiles) {
                 projectile.update((float) tempsEcoule);
@@ -193,6 +213,12 @@ public final class EcranCarte extends ScreenAdapter {
         if (modeVerification) {
             verifierAffichage();
         }
+    }
+
+    private void relancerPartie() {
+        Game jeu = (Game) Gdx.app.getApplicationListener();  
+        jeu.setScreen(new EcranCarte(false));                
+        dispose();                                          
     }
 
     private void deplacerCamera(double tempsEcoule) { // caméra touches / fleches
@@ -267,6 +293,7 @@ public final class EcranCarte extends ScreenAdapter {
                     projectile.destroy();
                     if (mob.getLife().isDead()) {
                         hugo.addXp(mob.getXpReward());
+                        mobsTues++;
                     }                          
                 }
             }
@@ -426,6 +453,7 @@ public final class EcranCarte extends ScreenAdapter {
         xpBar.draw(dessin, pixelBlanc, police, hugo, hauteur);
         upgradeMenu.draw(dessin, pixelBlanc, largeur, hauteur);
         chestBonusMenu.draw(dessin, pixelBlanc, police, largeur, hauteur);
+        gameOverMenu.draw(dessin, pixelBlanc, largeur, hauteur);
         dessin.end();
     }
 
@@ -702,6 +730,7 @@ public final class EcranCarte extends ScreenAdapter {
 
         if (dessin != null) {
             dessin.dispose();
+            gameOverMenu.dispose();
         }
 
         if (police != null) {
