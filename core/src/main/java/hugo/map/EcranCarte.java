@@ -4,6 +4,7 @@ package hugo.map;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -20,10 +21,12 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import hugo.entity.Player;
 import hugo.entity.Projectile;
+import hugo.gameover.GameOverMenu;
 import hugo.mob.Mob;
 import hugo.mob.spawn.MobSpawner;
 import hugo.upgrade.UpgradeMenu;
 import hugo.wave.WaveManager;
+
 
 
 public final class EcranCarte extends ScreenAdapter {
@@ -72,6 +75,8 @@ public final class EcranCarte extends ScreenAdapter {
     private boolean hugoMort = false;
 
     private int mobsTues = 0;
+
+    private final GameOverMenu gameOverMenu = new GameOverMenu();
 
     public EcranCarte(boolean modeVerification) {
         this.modeVerification = modeVerification;
@@ -153,7 +158,10 @@ public final class EcranCarte extends ScreenAdapter {
             upgradeMenu.open();
         }
         if (hugoMort) {
-
+            if (gameOverMenu.update(largeur, hauteur)) {     
+                    relancerPartie();
+                    return;                                      
+            }
         } else if (upgradeMenu.isOpen()) {
             upgradeMenu.update(hugo, largeur, hauteur);
         } else {
@@ -163,10 +171,9 @@ public final class EcranCarte extends ScreenAdapter {
                 mob.attack(hugo);
             }
             if (hugo.getLife().isDead() && !hugoMort) {
-                hugoMort = true;
-                Gdx.app.log("PARTIE", "Hugo est mort au niveau " + hugo.getLevel()
-                        + ", vague " + waveManager.getWave()
-                        + ", " + mobsTues + " ennemis éliminés");            }
+                hugoMort = true;          
+                gameOverMenu.open(hugo.getLevel(), waveManager.getWave(), mobsTues);
+            }
             mobSpawner.updateWave(waveManager, delta, carte, hugo.getX(), hugo.getY());
         }
 
@@ -179,6 +186,12 @@ public final class EcranCarte extends ScreenAdapter {
         if (modeVerification) {
             verifierAffichage();
         }
+    }
+
+    private void relancerPartie() {
+        Game jeu = (Game) Gdx.app.getApplicationListener();  
+        jeu.setScreen(new EcranCarte(false));                
+        dispose();                                          
     }
 
     private void deplacerCamera(double tempsEcoule) { // caméra touches / fleches
@@ -397,6 +410,7 @@ public final class EcranCarte extends ScreenAdapter {
 
         dessin.setColor(Color.WHITE);
         upgradeMenu.draw(dessin, pixelBlanc, largeur, hauteur);
+        gameOverMenu.draw(dessin, pixelBlanc, largeur, hauteur);
         dessin.end();
     }
 
@@ -673,6 +687,7 @@ public final class EcranCarte extends ScreenAdapter {
 
         if (dessin != null) {
             dessin.dispose();
+            gameOverMenu.dispose();
         }
 
         if (police != null) {
