@@ -71,6 +71,8 @@ public final class EcranCarte extends ScreenAdapter {
 
     private boolean hugoMort = false;
 
+    private int mobsTues = 0;
+
     public EcranCarte(boolean modeVerification) {
         this.modeVerification = modeVerification;
     }
@@ -162,8 +164,9 @@ public final class EcranCarte extends ScreenAdapter {
             }
             if (hugo.getLife().isDead() && !hugoMort) {
                 hugoMort = true;
-                Gdx.app.log("PARTIE", "Hugo est mort au niveau " + hugo.getLevel());
-            }
+                Gdx.app.log("PARTIE", "Hugo est mort au niveau " + hugo.getLevel()
+                        + ", vague " + waveManager.getWave()
+                        + ", " + mobsTues + " ennemis éliminés");            }
             mobSpawner.updateWave(waveManager, delta, carte, hugo.getX(), hugo.getY());
         }
 
@@ -250,6 +253,7 @@ public final class EcranCarte extends ScreenAdapter {
                     projectile.destroy();
                     if (mob.getLife().isDead()) {
                         hugo.addXp(XP_PAR_MOB);
+                        mobsTues++;
                     }                          
                 }
             }
