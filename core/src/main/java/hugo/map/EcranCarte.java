@@ -82,8 +82,6 @@ public final class EcranCarte extends ScreenAdapter {
 
     private boolean hugoMort = false;
 
-    private int mobsTues = 0;
-
     private final GameOverMenu gameOverMenu = new GameOverMenu();
 
     public EcranCarte(boolean modeVerification) {
@@ -191,7 +189,7 @@ public final class EcranCarte extends ScreenAdapter {
             }
             if (hugo.getLife().isDead() && !hugoMort) {
                 hugoMort = true;
-                gameOverMenu.open(hugo.getLevel(), waveManager.getWave(), mobsTues);
+                gameOverMenu.open(hugo.getLevel(), waveManager.getWave(), hugo.getKills());
             }
             for (Projectile projectile : enemyProjectiles) {
                 projectile.update((float) tempsEcoule);
@@ -292,8 +290,7 @@ public final class EcranCarte extends ScreenAdapter {
                     mob.getLife().takeDamage(projectile.getDamage());   
                     projectile.destroy();
                     if (mob.getLife().isDead()) {
-                        hugo.addXp(mob.getXpReward());
-                        mobsTues++;
+                        hugo.registerKill(mob.getXpReward());
                     }                          
                 }
             }

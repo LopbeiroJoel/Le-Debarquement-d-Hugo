@@ -1,17 +1,18 @@
 package hugo.mob;
 
+import java.util.List;
+
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+
 import hugo.entity.Creature;
 import hugo.entity.Player;
 import hugo.entity.Projectile;
 import hugo.map.CarteJeu;
 import hugo.mob.spawn.MobSpawner;
-
-import java.util.List;
 
 public abstract class Mob extends Creature {
 
@@ -40,7 +41,10 @@ public abstract class Mob extends Creature {
 
     public void updateAgainst(Creature target, CarteJeu map, float deltaTime, MobSpawner spawner) {
         if (target instanceof Player player && player.hasParachuteStrike()) {
-            spawner.defeat(this);
+            if (!getLife().isDead()) {
+                player.registerKill(getXpReward());
+                spawner.defeat(this);
+            }
             return;
         }
 

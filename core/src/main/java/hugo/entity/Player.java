@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+
 import hugo.bonus.EasterEggGoku;
 import hugo.bonus.HelmetBonus;
 import hugo.bonus.MateBonus;
@@ -68,6 +69,8 @@ public class Player extends Creature {
     private int level = 1;
     private float xpToNextLevel = FIRST_LEVEL_XP;
     private int pendingUpgrades = 0;
+    private int kills = 0;
+
 
     public Player(Texture sheet, float x, float y) {
         super(new TextureRegion(sheet, 0, 0, FRAME_WIDTH, FRAME_HEIGHT), x, y, MAX_LIFE, BASE_SPEED, WIDTH, HEIGHT, ATTACK_RANGE, ATTACK_DAMAGE, HITBOX_SIZE);
@@ -329,5 +332,14 @@ public class Player extends Creature {
         if (pendingUpgrades > 0) {    
             pendingUpgrades--;          
         }
+    }
+
+    public void registerKill(float xp) {
+        addXp(xp); 
+        kills++;
+    }
+
+    public int getKills() {
+        return kills;
     }
 }
