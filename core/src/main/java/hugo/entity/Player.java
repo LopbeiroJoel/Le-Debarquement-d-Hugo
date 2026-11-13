@@ -26,7 +26,7 @@ public class Player extends Creature {
     private static final int FRAME_WIDTH = 543;
     private static final int FRAME_HEIGHT = 724;
     private static final float ATTACK_RANGE = 500;
-    private static final float ATTACK_DAMAGE = 7;
+    private static final float ATTACK_DAMAGE = 8;
     private static final float HITBOX_SIZE = 33;
     private static final float CRIT_CHANCE = 0.1f;
     private static final float CRIT_MULTIPLIER = 2.0f;

@@ -10,7 +10,7 @@ public class UpgradePool {
 
     public UpgradePool() {
         upgrades.add(new StatUpgrade("+10 % de vitesse", "speed", player -> player.getSpeed(), 1.1f));
-        upgrades.add(new StatUpgrade("+10 % de dégâts", "damage", player -> player.getAttackDamage(), 1.1f));
+        upgrades.add(new StatUpgrade("+20 % de dégâts", "damage", player -> player.getAttackDamage(), 1.2f));
         upgrades.add(new StatUpgrade("+10 % de portée", "range", player -> player.getAttackRange(), 1.1f));
         upgrades.add(new StatUpgrade("+10 % de dégâts critiques", "crit-damage", player -> player.getCritMultiplier(), 1.1f));
         upgrades.add(new FlatStatUpgrade("+10 % de chance de critique", "crit-chance", player -> player.getCritChance(), 0.1f));
