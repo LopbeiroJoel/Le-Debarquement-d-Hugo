@@ -730,7 +730,6 @@ public final class EcranCarte extends ScreenAdapter {
 
         if (dessin != null) {
             dessin.dispose();
-            gameOverMenu.dispose();
         }
 
         if (police != null) {
@@ -740,6 +739,7 @@ public final class EcranCarte extends ScreenAdapter {
         mobSpawner.dispose();
         upgradeMenu.dispose();
         chestBonusMenu.dispose();
+        gameOverMenu.dispose();
 
         if (pixelBlanc != null) {
             pixelBlanc.dispose();
