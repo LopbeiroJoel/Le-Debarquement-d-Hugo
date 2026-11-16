@@ -96,6 +96,18 @@ public class Projectile implements Entity {
         return damage;
     }
 
+    public float getMaxRange() {
+        return maxRange;
+    }
+
+    public float getDirX() {
+        return dirX;
+    }
+
+    public float getDirY() {
+        return dirY;
+    }
+
     public boolean isActive() {
         return active;
     }
