@@ -65,6 +65,7 @@ public class Player extends Creature {
 
     private Stat fireDelay = new Stat(FIRE_DELAY);
     private float fireTimer = 0.0f;
+    private float regenTimer;
 
     private int level = 1;
     private float xpToNextLevel = FIRST_LEVEL_XP;
@@ -139,6 +140,16 @@ public class Player extends Creature {
         } else {
             stateTime = 0;
             sprite = frames[0];
+        }
+
+        if (life.isDead() || life.getCurrentLife() >= life.getMaxLife()) {
+            regenTimer = 0f;
+        } else {
+            regenTimer += deltaTime;
+            while (regenTimer >= 1f) {
+                life.heal(1f);
+                regenTimer -= 1f;
+            }
         }
 
         fireTimer += deltaTime;
