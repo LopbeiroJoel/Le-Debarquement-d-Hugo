@@ -1,5 +1,7 @@
 package hugo.entity;
 
+import java.util.List;
+
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -16,6 +18,8 @@ import hugo.bonus.WhiskyBonus;
 import hugo.bonus.animation.BonusAnimation;
 import hugo.bonus.animation.ParachuteAnimation;
 import hugo.ui.LIFE_HUGO_BARRE;
+import hugo.weapon.Weapon;
+import hugo.weapon.Weapons;
 
 public class Player extends Creature {
 
@@ -25,17 +29,13 @@ public class Player extends Creature {
     private static final float HEIGHT = 96;
     private static final int FRAME_WIDTH = 543;
     private static final int FRAME_HEIGHT = 724;
-    private static final float ATTACK_RANGE = 500;
-    private static final float ATTACK_DAMAGE = 8;
+    private static final float ATTACK_RANGE = 1;
+    private static final float ATTACK_DAMAGE = 1;
     private static final float HITBOX_SIZE = 33;
     private static final float CRIT_CHANCE = 0.1f;
     private static final float CRIT_MULTIPLIER = 2.0f;
     private static final float FRAME_DURATION = 0.15f;
-    private static final float FIRE_DELAY = 1.0f;
-    private static final float BULLET_SPEED = 1000.0f;
-    private static final float BULLET_SIZE = 8.0f;
-    private static final float BULLET_SPRITE_WIDTH = 24f;
-    private static final float BULLET_SPRITE_HEIGHT = 9f;
+    private static final float FIRE_DELAY = 1;
     private static final float FIRST_LEVEL_XP = 50;
     private static final float LEVEL_XP_GROWTH = 1.3f;
 
@@ -70,7 +70,7 @@ public class Player extends Creature {
     private float xpToNextLevel = FIRST_LEVEL_XP;
     private int pendingUpgrades = 0;
     private int kills = 0;
-
+    private Weapon weapon = Weapons.carbine();
 
     public Player(Texture sheet, float x, float y) {
         super(new TextureRegion(sheet, 0, 0, FRAME_WIDTH, FRAME_HEIGHT), x, y, MAX_LIFE, BASE_SPEED, WIDTH, HEIGHT, ATTACK_RANGE, ATTACK_DAMAGE, HITBOX_SIZE);
@@ -113,6 +113,10 @@ public class Player extends Creature {
 
     public int getLevel() {
         return level;
+    }
+
+    public float getShootRange() {
+        return weapon.getBaseRange() * attackRange.getValue();
     }
 
     public float getXpToNextLevel() {
@@ -251,7 +255,7 @@ public class Player extends Creature {
             float lean = 9f * MathUtils.sin(whiskyTime * 5f) * Math.min(1f, whiskyTime);
             normalTransform.set(batch.getTransformMatrix());
             whiskyTransform.set(normalTransform).translate(x, y, 0f)
-                .rotate(Vector3.Z, lean).translate(-x, -y, 0f);
+                    .rotate(Vector3.Z, lean).translate(-x, -y, 0f);
             batch.setTransformMatrix(whiskyTransform);
             drawBody(batch);
             batch.setTransformMatrix(normalTransform);
@@ -292,7 +296,7 @@ public class Player extends Creature {
         float helmetCenter = facingLeft ? x + headOffset : x - headOffset;
         float helmetX = facingLeft ? helmetCenter + helmetWidth / 2f : helmetCenter - helmetWidth / 2f;
         batch.draw(wornHelmet, helmetX, y - height + 2f,
-            facingLeft ? -helmetWidth : helmetWidth, helmetHeight);
+                facingLeft ? -helmetWidth : helmetWidth, helmetHeight);
     }
 
     @Override
@@ -301,41 +305,42 @@ public class Player extends Creature {
     }
 
     public boolean canShoot() {
-        return fireTimer >= fireDelay.getValue();
+        return fireTimer >= weapon.getBaseFireDelay() * fireDelay.getValue();
     }
 
-    public Projectile shoot(TextureRegion bulletSprite, Creature target) {
+    public List<Projectile> shoot(TextureRegion bulletSprite, Creature target) {
         fireTimer = 0.0f;
 
-        float damage = attackDamage.getValue();
+        float damage = weapon.getBaseDamage() * attackDamage.getValue();
         if (MathUtils.random() < critChance.getValue()) {
             damage *= critMultiplier.getValue();
         }
 
-        float dx = target.getX() - x;
-        float dy = target.getCenterY() - getCenterY();
-        float length = (float) Math.sqrt(dx * dx + dy * dy);
-        if (length != 0) {
-            dx /= length;
-            dy /= length;
-        }
-        float rotation = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees;
-        return new Projectile(bulletSprite, x, getCenterY(), dx, dy, BULLET_SPEED, damage,
-            attackRange.getValue(), BULLET_SIZE, BULLET_SIZE, BULLET_SPRITE_WIDTH, BULLET_SPRITE_HEIGHT, rotation);
+        return weapon.fire(bulletSprite, x, getCenterY(),
+                target.getX(), target.getCenterY(), damage, getShootRange());
     }
 
     public Stat getFireDelay() {
         return fireDelay;
     }
 
+    public Weapon getWeapon() {
+        return weapon;
+    }
+
+    public void equipWeapon(Weapon weapon) {
+        this.weapon = weapon;
+        fireTimer = 0.0f;
+    }
+
     public void consumePendingUpgrade() {
-        if (pendingUpgrades > 0) {    
-            pendingUpgrades--;          
+        if (pendingUpgrades > 0) {
+            pendingUpgrades--;
         }
     }
 
     public void registerKill(float xp) {
-        addXp(xp); 
+        addXp(xp);
         kills++;
     }
 
