@@ -55,6 +55,7 @@ public abstract class Mob extends Creature {
         update(deltaTime);
     }
 
+    // mob contourne les obstacles
     private void chooseMovement(CarteJeu map, float deltaTime, MobSpawner spawner) {
         if (dirX == 0 && dirY == 0) {
             return;
@@ -73,30 +74,23 @@ public abstract class Mob extends Creature {
         setDirection(0, 0);
     }
 
-    public void follow(Rectangle hugoHitbox) { //bah follow quoi
+    // mob suit hugo
+    public void follow(Rectangle hugoHitbox) {
         if (hugoHitbox == null || life.isDead()) {
-            setDirection(0, 0); // pas de Hugo ou mob mort
+            setDirection(0, 0);
             return;
         }
 
         Rectangle mobHitbox = getHitbox();
 
         if (mobHitbox.overlaps(hugoHitbox)) {
-            setDirection(0, 0); // touche Hugo, on bouge plus
+            setDirection(0, 0);
             return;
         }
 
-        float mobCenterX = mobHitbox.x + mobHitbox.width / 2f;
-        float mobCenterY = mobHitbox.y + mobHitbox.height / 2f;
-        float hugoCenterX = hugoHitbox.x + hugoHitbox.width / 2f;
-        float hugoCenterY = hugoHitbox.y + hugoHitbox.height / 2f;
-
-        float distanceX = hugoCenterX - mobCenterX;
-        float distanceY = hugoCenterY - mobCenterY;
-
-        float distance = (float) Math.sqrt(
-            distanceX * distanceX + distanceY * distanceY
-        );
+        float distanceX = (hugoHitbox.x + hugoHitbox.width / 2f) - (mobHitbox.x + mobHitbox.width / 2f);
+        float distanceY = (hugoHitbox.y + hugoHitbox.height / 2f) - (mobHitbox.y + mobHitbox.height / 2f);
+        float distance = (float) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
         if (distance == 0) {
             setDirection(0, 0);
@@ -105,6 +99,8 @@ public abstract class Mob extends Creature {
 
         setDirection(distanceX / distance, distanceY / distance);
     }
+
+    @Override
     public void update(float deltaTime) {
         if (deltaTime <= 0) {
             return;
@@ -118,6 +114,7 @@ public abstract class Mob extends Creature {
         attackCooldown = Math.max(0, attackCooldown - deltaTime);
     }
 
+    // mob tape
     public boolean attack(Creature target) {
         if (target == null || target.getLife().isDead() || !startMeleeAttack(target)) {
             return false;
@@ -141,6 +138,7 @@ public abstract class Mob extends Creature {
         return true;
     }
 
+    // mob tire
     protected boolean shootAt(Creature target, TextureRegion bullet, List<Projectile> projectiles, float range) {
         if (!canAttack(target)) {
             return false;
@@ -154,15 +152,18 @@ public abstract class Mob extends Creature {
             return false;
         }
 
-        Projectile projectile;
-        if (projectileSprite == null) {
-            projectile = new Projectile(bullet, x, startY, dx / distance, dy / distance,
-                360f, 0f, range, 8f, 8f);
-        } else {
-            float rotation = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees;
-            projectile = new Projectile(projectileSprite, x, startY, dx / distance, dy / distance,
-                360f, 0f, range, 8f, 8f, 24f, 9f, rotation);
+        TextureRegion sprite = bullet;
+        float spriteWidth = 8f;
+        float spriteHeight = 8f;
+        float rotation = 0f;
+        if (projectileSprite != null) {
+            sprite = projectileSprite;
+            spriteWidth = 24f;
+            spriteHeight = 9f;
+            rotation = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees;
         }
+        Projectile projectile = new Projectile(sprite, x, startY, dx / distance, dy / distance,
+            360f, 0f, range, 8f, 8f, spriteWidth, spriteHeight, rotation);
         projectile.setMap(map);
         projectiles.add(projectile);
         attackCooldown = attackInterval;

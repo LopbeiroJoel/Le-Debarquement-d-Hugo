@@ -18,6 +18,7 @@ public class MobLvl5 extends AnimatedMob {
         knife = readAnimation(slash, 0.12f);
     }
 
+    // boss tire ou tape
     public void attackTarget(Creature target, TextureRegion bullet, List<Projectile> projectiles) {
         if (!startMeleeAttack(target) && shootAt(target, bullet, projectiles, 380f)) {
             playShot();

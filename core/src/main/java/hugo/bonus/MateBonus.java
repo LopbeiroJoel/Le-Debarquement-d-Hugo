@@ -9,6 +9,7 @@ public class MateBonus {
 
     private float remainingTime;
 
+    // maté accélère hugo
     public void activate(Player player) {
         if (remainingTime <= 0f) {
             player.getSpeed().addMultiplier(SPEED_MULTIPLIER);

@@ -48,10 +48,14 @@ public enum TypeDecor {
     OPEN_CHEST("../coffres/caisse-HUGO-ouverte-v3.png",56,56,"prop");
 
     public final String path;
-    public final int width,height;
+    public final int width;
+    public final int height;
     public final String footprint;
-    TypeDecor(String path,int width,int height,String footprint){
-        this.path=path.startsWith("../")?"/"+path.substring(3):"/decor/"+path;
-        this.width=width*2;this.height=height*2;this.footprint=footprint;
+
+    TypeDecor(String path, int width, int height, String footprint) {
+        this.path = path.startsWith("../") ? "/" + path.substring(3) : "/decor/" + path;
+        this.width = width * 2;
+        this.height = height * 2;
+        this.footprint = footprint;
     }
 }

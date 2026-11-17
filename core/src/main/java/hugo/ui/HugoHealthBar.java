@@ -5,10 +5,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import hugo.entity.Life;
 
-public final class LIFE_HUGO_BARRE {
-    private LIFE_HUGO_BARRE() {
+public final class HugoHealthBar {
+    private HugoHealthBar() {
     }
 
+    // barre de vie hugo
     public static void draw(SpriteBatch batch, Texture pixel, Life life, float centerX, float y) {
         float healthRatio = life.getCurrentLife() / life.getMaxLife();
         float width = 36f;

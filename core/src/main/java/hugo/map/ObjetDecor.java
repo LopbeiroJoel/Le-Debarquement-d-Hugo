@@ -1,11 +1,12 @@
-//placement asset dans la map clauder
+// place le décor
 package hugo.map;
 
 import com.badlogic.gdx.math.Rectangle;
 
 public final class ObjetDecor {
     public final String id;
-    public final float x,y;
+    public final float x;
+    public final float y;
     public final boolean ground;
     public final Rectangle collision;
     private TypeDecor type;
@@ -14,18 +15,42 @@ public final class ObjetDecor {
     private float chestTime = -1f;
     private boolean chestArmed = true;
 
-    public ObjetDecor(String id,TypeDecor type,float x,float y){
-        this.id=id;this.type=type;this.x=x;this.y=y;
-        ground=type.footprint.equals("ground");
-        float a=.1f,b=.55f,c=.8f,d=.45f;
-        if(type.footprint.equals("tree")){a=.43f;b=.87f;c=.14f;d=.13f;}
-        if(type.footprint.equals("building")){a=.08f;b=.52f;c=.84f;d=.48f;}
-        if(type.footprint.equals("fence")){a=.01f;b=.70f;c=.98f;d=.30f;}
-        if(type.footprint.equals("vertical")){a=.20f;b=.02f;c=.60f;d=.98f;}
-        collision=ground?null:new Rectangle(x-type.width/2f+a*type.width,y-type.height+b*type.height,c*type.width,d*type.height);
+    public ObjetDecor(String id, TypeDecor type, float x, float y) {
+        this.id = id;
+        this.type = type;
+        this.x = x;
+        this.y = y;
+        ground = type.footprint.equals("ground");
+        collision = createCollision();
     }
-    public TypeDecor getType(){return type;}
-    public boolean isChest(){return type==TypeDecor.CHEST||type==TypeDecor.OPEN_CHEST;}
+
+    // partie solide de l’objet
+    private Rectangle createCollision() {
+        switch (type.footprint) {
+            case "ground": return null;
+            case "tree": return collisionBox(0.43f, 0.87f, 0.14f, 0.13f);
+            case "building": return collisionBox(0.08f, 0.52f, 0.84f, 0.48f);
+            case "fence": return collisionBox(0.01f, 0.70f, 0.98f, 0.30f);
+            case "vertical": return collisionBox(0.20f, 0.02f, 0.60f, 0.98f);
+            default: return collisionBox(0.1f, 0.55f, 0.8f, 0.45f);
+        }
+    }
+
+    private Rectangle collisionBox(float left, float top, float width, float height) {
+        float boxX = x - type.width / 2f + left * type.width;
+        float boxY = y - type.height + top * type.height;
+        return new Rectangle(boxX, boxY, width * type.width, height * type.height);
+    }
+
+    public TypeDecor getType() {
+        return type;
+    }
+
+    public boolean isChest() {
+        return type == TypeDecor.CHEST || type == TypeDecor.OPEN_CHEST;
+    }
+
+    // ouvre le coffre
     public void checkChestTrigger(boolean nearby) {
         if (!nearby) {
             chestArmed = true;
@@ -35,6 +60,7 @@ public final class ObjetDecor {
         }
     }
 
+    // ferme le coffre après deux minutes
     public boolean updateChest(float delta) {
         if (chestTime < 0f) {
             return false;

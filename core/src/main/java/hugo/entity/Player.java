@@ -17,9 +17,9 @@ import hugo.bonus.TobaccoBonus;
 import hugo.bonus.WhiskyBonus;
 import hugo.bonus.animation.BonusAnimation;
 import hugo.bonus.animation.ParachuteAnimation;
-import hugo.ui.LIFE_HUGO_BARRE;
 import hugo.weapon.Weapon;
 import hugo.weapon.Weapons;
+import hugo.ui.HugoHealthBar;
 
 public class Player extends Creature {
 
@@ -65,6 +65,7 @@ public class Player extends Creature {
 
     private Stat fireDelay = new Stat(FIRE_DELAY);
     private float fireTimer = 0.0f;
+    private float regenTimer;
 
     private int level = 1;
     private float xpToNextLevel = FIRST_LEVEL_XP;
@@ -145,7 +146,19 @@ public class Player extends Creature {
             sprite = frames[0];
         }
 
+        // hugo regen
+        if (life.isDead() || life.getCurrentLife() >= life.getMaxLife()) {
+            regenTimer = 0f;
+        } else {
+            regenTimer += deltaTime;
+            while (regenTimer >= 1f) {
+                life.heal(1f);
+                regenTimer -= 1f;
+            }
+        }
+
         fireTimer += deltaTime;
+        // chrono casque
         if (helmetAnimation.isPlaying()) {
             helmetAnimation.update(deltaTime);
             if (!helmetAnimation.isPlaying()) {
@@ -154,6 +167,7 @@ public class Player extends Creature {
         } else {
             helmetBonus.update(deltaTime);
         }
+        // chrono tabac
         if (tobaccoAnimation.isPlaying()) {
             tobaccoAnimation.update(deltaTime);
             if (!tobaccoAnimation.isPlaying()) {
@@ -163,6 +177,7 @@ public class Player extends Creature {
             tobaccoBonus.update(this, deltaTime);
         }
         fullHealAnimation.update(deltaTime);
+        // chrono whisky
         whiskyBonus.update(deltaTime);
         if (whiskyAnimation.isPlaying()) {
             whiskyAnimation.update(deltaTime);
@@ -170,6 +185,7 @@ public class Player extends Creature {
                 whiskyBonus.activate();
             }
         }
+        // chrono maté
         if (mateAnimation.isPlaying()) {
             mateAnimation.update(deltaTime);
             if (!mateAnimation.isPlaying()) {
@@ -205,6 +221,7 @@ public class Player extends Creature {
         return whiskyBonus.getRemainingTime();
     }
 
+    // hugo lance les parachutes
     public void useParachute() {
         parachuteAnimation.play();
         parachuteRequested = true;
@@ -214,6 +231,7 @@ public class Player extends Creature {
         return parachuteStrike;
     }
 
+    // hugo met son casque
     public void equipHelmet() {
         if (helmetBonus.isActive()) {
             helmetBonus.activate();
@@ -301,7 +319,7 @@ public class Player extends Creature {
 
     @Override
     public void drawHealthBar(SpriteBatch batch, Texture pixel) {
-        LIFE_HUGO_BARRE.draw(batch, pixel, getLife(), x, y - height - 10f);
+        HugoHealthBar.draw(batch, pixel, getLife(), x, y - height - 10f);
     }
 
     public boolean canShoot() {

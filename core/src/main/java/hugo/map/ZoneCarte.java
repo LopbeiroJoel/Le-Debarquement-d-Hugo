@@ -1,5 +1,4 @@
-// Sert à savoir si on est dans une zone ou si on la touche // clauder
-// Genre la rivière bloque le perso et on évite de mettre des arbres sur les routes
+// zones de la map
 
 package hugo.map;
 
@@ -48,6 +47,7 @@ public final class ZoneCarte {
         );
     }
 
+    // point dans la zone
     public boolean contains(float x, float y) {
         if (!bounds.contains(x, y)) {
             return false;
@@ -56,87 +56,70 @@ public final class ZoneCarte {
         boolean inside = false;
 
         for (float[] points : polygons) {
-            int precedent = points.length - 2;
+            int previous = points.length - 2;
 
             for (int i = 0; i < points.length; i = i + 2) {
-                float actuelX = points[i];
-                float actuelY = points[i + 1];
+                float currentX = points[i];
+                float currentY = points[i + 1];
 
-                float precedentX = points[precedent];
-                float precedentY = points[precedent + 1];
+                float previousX = points[previous];
+                float previousY = points[previous + 1];
 
-                boolean traverseHauteur =
-                    (actuelY > y) != (precedentY > y);
+                boolean crossesHeight =
+                    (currentY > y) != (previousY > y);
 
-                if (traverseHauteur) {
+                if (crossesHeight) {
                     float intersectionX =
-                        (precedentX - actuelX)
-                            * (y - actuelY)
-                            / (precedentY - actuelY)
-                            + actuelX;
+                        (previousX - currentX)
+                            * (y - currentY)
+                            / (previousY - currentY)
+                            + currentX;
 
                     if (x < intersectionX) {
                         inside = !inside;
                     }
                 }
 
-                precedent = i;
+                previous = i;
             }
         }
 
         return inside;
     }
 
+    // boîte touche la zone
     public boolean intersects(Rectangle box) {
         if (!bounds.overlaps(box)) {
             return false;
         }
 
-        float gauche = box.x;
-        float droite = box.x + box.width;
+        float left = box.x;
+        float right = box.x + box.width;
 
-        float haut = box.y;
-        float bas = box.y + box.height;
+        float top = box.y;
+        float bottom = box.y + box.height;
 
-        if (contains(gauche, haut)) {
-            return true;
-        }
-
-        if (contains(droite, haut)) {
-            return true;
-        }
-
-        if (contains(gauche, bas)) {
-            return true;
-        }
-
-        if (contains(droite, bas)) {
+        if (contains(left, top) || contains(right, top)
+                || contains(left, bottom) || contains(right, bottom)) {
             return true;
         }
 
         for (float[] points : polygons) {
-            int precedent = points.length - 2;
+            int previous = points.length - 2;
 
             for (int i = 0; i < points.length; i = i + 2) {
-                boolean touche = segment(
-                    box,
-                    points[precedent],
-                    points[precedent + 1],
-                    points[i],
-                    points[i + 1]
-                );
-
-                if (touche) {
+                if (segment(box, points[previous], points[previous + 1], points[i], points[i + 1])) {
                     return true;
                 }
 
-                precedent = i;
+                previous = i;
             }
         }
 
         return false;
     }
 
+    // ligne traverse la boîte
     public static boolean segment(
         Rectangle box,
         float x1,
@@ -144,8 +127,8 @@ public final class ZoneCarte {
         float x2,
         float y2
     ) {
-        float debut = 0;
-        float fin = 1;
+        float start = 0;
+        float end = 1;
 
         float directionX = x2 - x1;
         float directionY = y2 - y1;
@@ -173,15 +156,15 @@ public final class ZoneCarte {
                     return false;
                 }
             } else {
-                float proportion = distance / direction;
+                float fraction = distance / direction;
 
                 if (direction < 0) {
-                    debut = Math.max(debut, proportion);
+                    start = Math.max(start, fraction);
                 } else {
-                    fin = Math.min(fin, proportion);
+                    end = Math.min(end, fraction);
                 }
 
-                if (debut > fin) {
+                if (start > end) {
                     return false;
                 }
             }

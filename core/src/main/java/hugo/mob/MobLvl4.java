@@ -16,6 +16,7 @@ public class MobLvl4 extends AnimatedMob {
         shot = readAnimation(fire, 0.10f);
     }
 
+    // vétéran tire
     public void attackTarget(Creature target, TextureRegion bullet, List<Projectile> projectiles) {
         if (shootAt(target, bullet, projectiles, 300f)) {
             playShot();

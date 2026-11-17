@@ -19,28 +19,10 @@ public class MobLvl2 extends Mob {
 
     public MobLvl2(Texture walkTexture, Texture biteTexture, float x, float y) {
         super(walkTexture, x, y, 7, 320, SPRITE_SIZE, SPRITE_SIZE, 18, 0f);
-        walkAnimation = new Animation<>(0.10f, readFrames(walkTexture));
-        TextureRegion[] biteFrames = readFrames(biteTexture);
+        walkAnimation = new Animation<>(0.10f, AnimatedMob.readFrames(walkTexture));
+        TextureRegion[] biteFrames = AnimatedMob.readFrames(biteTexture);
         biteAnimation = new Animation<>(0.09f, biteFrames);
         idleFrame = biteFrames[0];
-    }
-
-    private static TextureRegion[] readFrames(Texture texture) {
-        if (texture.getWidth() % 3 != 0 || texture.getHeight() % 2 != 0) {
-            throw new IllegalArgumentException("Expected a 3-column, 2-row sprite sheet");
-        }
-
-        TextureRegion[][] grid = TextureRegion.split(
-            texture, texture.getWidth() / 3, texture.getHeight() / 2
-        );
-        TextureRegion[] frames = new TextureRegion[6];
-
-        for (int index = 0; index < frames.length; index++) {
-            frames[index] = grid[index / 3][index % 3];
-            frames[index].flip(false, true);
-        }
-
-        return frames;
     }
 
     public void update(float deltaTime) {
@@ -75,6 +57,7 @@ public class MobLvl2 extends Mob {
         walkTime = moving ? walkTime + deltaTime : 0f;
     }
 
+    // chien mord
     protected void onAttack() {
         biteTime = 0f;
         moving = false;

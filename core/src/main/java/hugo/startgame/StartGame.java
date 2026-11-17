@@ -91,6 +91,7 @@ public final class StartGame extends ScreenAdapter {
         }
     }
 
+    // menu de départ
     private void drawMenu() {
         ScreenUtils.clear(0.08f, 0.10f, 0.08f, 1);
         viewport.apply();

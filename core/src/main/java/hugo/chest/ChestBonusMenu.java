@@ -13,6 +13,7 @@ import hugo.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 
 public final class ChestBonusMenu {
@@ -21,16 +22,27 @@ public final class ChestBonusMenu {
     private final FullHealBonus fullHealBonus = new FullHealBonus();
     private final GlyphLayout label = new GlyphLayout();
     private final Rectangle closeButton = new Rectangle();
-    private Texture heartIcon;
-    private Texture mateIcon;
-    private Texture tobaccoIcon;
-    private Texture helmetIcon;
-    private Texture parachuteIcon;
-    private Texture whiskyIcon;
+    private final EnumMap<Bonus, Texture> icons = new EnumMap<>(Bonus.class);
     private boolean open;
 
+    // cartes bonus
     private enum Bonus {
-        TABAC, SOIN_COMPLET, MATE, CASQUE, PARACHUTE, WHISKY
+        TOBACCO("Tabac", "Cigarette", "tobacco.png"),
+        FULL_HEAL("Soin complet", "", "heart.png"),
+        MATE("Maté", "", "mate.png"),
+        HELMET("Casque", "Invincible 30 s", "helmet.png"),
+        PARACHUTE("Parachute", "Elimine tous les mobs", "parachute.png"),
+        WHISKY("Whisky", "Teinte variable 30 s", "whisky.png");
+
+        final String title;
+        final String description;
+        final String iconFile;
+
+        Bonus(String title, String description, String iconFile) {
+            this.title = title;
+            this.description = description;
+            this.iconFile = iconFile;
+        }
     }
 
     private List<Bonus> choices = List.of();
@@ -39,6 +51,7 @@ public final class ChestBonusMenu {
         return open;
     }
 
+    // tire trois bonus
     public void open() {
         if (open) {
             return;
@@ -54,6 +67,7 @@ public final class ChestBonusMenu {
         open = false;
     }
 
+    // clic sur une carte
     public void update(Player player, int width, int height) {
         if (!open) {
             return;
@@ -65,58 +79,48 @@ public final class ChestBonusMenu {
             return;
         }
 
-        if (Gdx.input.justTouched()) {
-            float mouseX = Gdx.input.getX();
-            float mouseY = height - Gdx.input.getY();
-            placeCloseButton(width, height);
+        if (!Gdx.input.justTouched()) {
+            return;
+        }
 
-            for (int i = 0; i < choices.size(); i++) {
-                if (getCardBounds(i, width, height).contains(mouseX, mouseY)) {
-                    switch (choices.get(i)) {
-                        case TABAC -> player.useTobacco();
-                        case SOIN_COMPLET -> {
-                            player.playFullHealAnimation();
-                            fullHealBonus.apply(player);
-                        }
-                        case MATE -> player.drinkMate();
-                        case CASQUE -> player.equipHelmet();
-                        case PARACHUTE -> player.useParachute();
-                        case WHISKY -> player.drinkWhisky();
-                    }
-                    close();
-                    return;
-                }
-            }
+        float mouseX = Gdx.input.getX();
+        float mouseY = height - Gdx.input.getY();
+        placeCloseButton(width, height);
 
-            if (closeButton.contains(mouseX, mouseY)) {
+        for (int i = 0; i < choices.size(); i++) {
+            if (getCardBounds(i, width, height).contains(mouseX, mouseY)) {
+                applyBonus(choices.get(i), player);
                 close();
+                return;
             }
+        }
+
+        if (closeButton.contains(mouseX, mouseY)) {
+            close();
         }
     }
 
+    // active le bonus
+    private void applyBonus(Bonus bonus, Player player) {
+        switch (bonus) {
+            case TOBACCO -> player.useTobacco();
+            case FULL_HEAL -> {
+                player.playFullHealAnimation();
+                fullHealBonus.apply(player);
+            }
+            case MATE -> player.drinkMate();
+            case HELMET -> player.equipHelmet();
+            case PARACHUTE -> player.useParachute();
+            case WHISKY -> player.drinkWhisky();
+        }
+    }
+
+    // menu du coffre
     public void draw(SpriteBatch batch, Texture pixel, BitmapFont font, int width, int height) {
         if (!open) {
             return;
         }
 
-        if (heartIcon == null) {
-            heartIcon = new Texture("bonus/heart.png");
-        }
-        if (mateIcon == null) {
-            mateIcon = new Texture("bonus/mate.png");
-        }
-        if (tobaccoIcon == null) {
-            tobaccoIcon = new Texture("bonus/tobacco.png");
-        }
-        if (helmetIcon == null) {
-            helmetIcon = new Texture("bonus/helmet.png");
-        }
-        if (parachuteIcon == null) {
-            parachuteIcon = new Texture("bonus/parachute.png");
-        }
-        if (whiskyIcon == null) {
-            whiskyIcon = new Texture("bonus/whisky.png");
-        }
         batch.setColor(0, 0, 0, 0.62f);
         batch.draw(pixel, 0, 0, width, height);
         font.setColor(Color.WHITE);
@@ -130,34 +134,18 @@ public final class ChestBonusMenu {
 
             Bonus bonus = choices.get(i);
 
-            Texture icon = switch (bonus) {
-                case TABAC -> tobaccoIcon;
-                case SOIN_COMPLET -> heartIcon;
-                case MATE -> mateIcon;
-                case CASQUE -> helmetIcon;
-                case PARACHUTE -> parachuteIcon;
-                case WHISKY -> whiskyIcon;
-            };
-            String name = switch (bonus) {
-                case TABAC -> "Tabac";
-                case SOIN_COMPLET -> "Soin complet";
-                case MATE -> "Maté";
-                case CASQUE -> "Casque";
-                case PARACHUTE -> "Parachute";
-                case WHISKY -> "Whisky";
-            };
+            Texture icon = icons.get(bonus);
+            if (icon == null) {
+                icon = new Texture("bonus/" + bonus.iconFile);
+                icons.put(bonus, icon);
+            }
+
             float iconSize = Math.min(card.width * 0.70f, card.height * 0.54f);
             batch.setColor(Color.WHITE);
             batch.draw(icon, centerX - iconSize / 2f, card.y + card.height * 0.40f, iconSize, iconSize);
-            drawCentered(batch, font, name, centerX, card.y + card.height * 0.33f);
-            if (bonus == Bonus.TABAC) {
-                drawCentered(batch, font, "Cigarette", centerX, card.y + card.height * 0.17f);
-            } else if (bonus == Bonus.CASQUE) {
-                drawCentered(batch, font, "Invincible 30 s", centerX, card.y + card.height * 0.17f);
-            } else if (bonus == Bonus.PARACHUTE) {
-                drawCentered(batch, font, "Elimine tous les mobs", centerX, card.y + card.height * 0.17f);
-            } else if (bonus == Bonus.WHISKY) {
-                drawCentered(batch, font, "Teinte variable 30 s", centerX, card.y + card.height * 0.17f);
+            drawCentered(batch, font, bonus.title, centerX, card.y + card.height * 0.33f);
+            if (!bonus.description.isEmpty()) {
+                drawCentered(batch, font, bonus.description, centerX, card.y + card.height * 0.17f);
             }
         }
 
@@ -169,24 +157,10 @@ public final class ChestBonusMenu {
     }
 
     public void dispose() {
-        if (heartIcon != null) {
-            heartIcon.dispose();
+        for (Texture icon : icons.values()) {
+            icon.dispose();
         }
-        if (mateIcon != null) {
-            mateIcon.dispose();
-        }
-        if (tobaccoIcon != null) {
-            tobaccoIcon.dispose();
-        }
-        if (helmetIcon != null) {
-            helmetIcon.dispose();
-        }
-        if (parachuteIcon != null) {
-            parachuteIcon.dispose();
-        }
-        if (whiskyIcon != null) {
-            whiskyIcon.dispose();
-        }
+        icons.clear();
     }
 
     private Rectangle getCardBounds(int index, int width, int height) {

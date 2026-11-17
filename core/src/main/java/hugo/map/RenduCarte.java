@@ -1,4 +1,4 @@
-//placement de couche map : sol/objet sol/ombres/objets
+// dessine la map
 package hugo.map;
 
 import com.badlogic.gdx.Gdx;
@@ -24,73 +24,67 @@ import java.util.List;
 
 public final class RenduCarte implements Disposable {
 
-    private final CarteJeu carte;
+    private final CarteJeu map;
     private final List<Creature> drawOrder = new ArrayList<>();
     private final ImagesDecor images = new ImagesDecor();
 
-    // les images du sol
-    private final List<TextureRegion> morceauxSol = new ArrayList<>();
+    // images du sol
+    private final List<TextureRegion> groundTiles = new ArrayList<>();
 
-    // pour les traits rouges avec F1
-    private final ShapeRenderer contours = new ShapeRenderer();
+    // contours collisions
+    private final ShapeRenderer outlines = new ShapeRenderer();
 
-    // ce qu'on voit à l'écran
-    private final Rectangle zoneVisible = new Rectangle();
-    private final Texture pixelBlanc = creerPixelBlanc();
+    // zone visible
+    private final Rectangle visibleArea = new Rectangle();
+    private final Texture whitePixel = createWhitePixel();
 
-    private final FrameBuffer imagePetiteCarte;
+    private final FrameBuffer minimapBuffer;
     public final TextureRegion overview;
 
-    public RenduCarte(CarteJeu carte) {
-        this.carte = carte;
+    public RenduCarte(CarteJeu map) {
+        this.map = map;
 
-        chargerSol();
-        chargerDecor();
+        loadGround();
+        loadDecor();
 
-        imagePetiteCarte = creerPetiteCarte();
+        minimapBuffer = createMinimap();
 
-        overview = new TextureRegion(
-            imagePetiteCarte.getColorBufferTexture()
-        );
+        overview = new TextureRegion(minimapBuffer.getColorBufferTexture());
 
         overview.flip(false, true);
     }
 
-    // charge le sol morceau par morceau
-    private void chargerSol() {
-        for (int y = 0; y < carte.height; y = y + 1024) {
-            for (int x = 0; x < carte.width; x = x + 1024) {
-                String chemin =
-                    "render/ground/" + x + "-" + y + ".png";
+    // charge le sol
+    private void loadGround() {
+        for (int y = 0; y < map.height; y = y + 1024) {
+            for (int x = 0; x < map.width; x = x + 1024) {
+                String path = "render/ground/" + x + "-" + y + ".png";
+                Texture texture = new Texture(Gdx.files.internal(path));
 
-                Texture texture = new Texture(
-                    Gdx.files.internal(chemin)
-                );
-
-                // garde les pixels nets
+                // pixels nets
                 texture.setFilter(
                     Texture.TextureFilter.Nearest,
                     Texture.TextureFilter.Nearest
                 );
 
-                TextureRegion morceau = new TextureRegion(texture);
+                TextureRegion tile = new TextureRegion(texture);
 
-                morceau.flip(false, true);
+                tile.flip(false, true);
 
-                morceauxSol.add(morceau);
+                groundTiles.add(tile);
             }
         }
     }
 
-    // charge les arbres, maisons, barrières...
-    private void chargerDecor() {
+    // charge le décor
+    private void loadDecor() {
         for (TypeDecor type : TypeDecor.values()) {
             images.get(type);
         }
     }
 
-    // fait une image de toute la map pour la mini-map
-    private FrameBuffer creerPetiteCarte() {
+    // prépare la mini map
+    private FrameBuffer createMinimap() {
         FrameBuffer image = new FrameBuffer(
             Pixmap.Format.RGBA8888,
             460,
@@ -100,26 +94,26 @@ public final class RenduCarte implements Disposable {
 
         OrthographicCamera camera = new OrthographicCamera();
 
-        camera.setToOrtho(true, carte.width, carte.height);
+        camera.setToOrtho(true, map.width, map.height);
 
-        SpriteBatch dessin = new SpriteBatch();
+        SpriteBatch batch = new SpriteBatch();
 
         image.begin();
 
         ScreenUtils.clear(0, 0, 0, 1);
 
-        draw(dessin, camera, null, List.of());
+        draw(batch, camera, null, List.of());
 
         image.end();
 
-        dessin.dispose();
+        batch.dispose();
 
         return image;
     }
 
-    // dessine la map
+    // dessine le monde
     public void draw(
-        SpriteBatch dessin,
+        SpriteBatch batch,
         OrthographicCamera camera,
         Creature player,
         List<? extends Creature> enemies
@@ -131,42 +125,43 @@ public final class RenduCarte implements Disposable {
         drawOrder.addAll(enemies);
         drawOrder.sort(Comparator.comparingDouble(Creature::getY));
 
-        actualiserZoneVisible(camera);
+        updateVisibleArea(camera);
 
-        dessin.setProjectionMatrix(camera.combined);
-        dessin.begin();
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
 
-        // sol : on marche dessus
-        dessinerSol(dessin);
+        // sol
+        drawGround(batch);
 
-        // cratères et trucs au sol
-        dessinerElementsAuSol(dessin);
+        // détails au sol
+        drawGroundDetails(batch);
 
         // ombres
-        dessinerOmbres(dessin);
+        drawShadows(batch);
 
-        // arbres, maisons, barrières et perso
-        dessinerDecorEtPersonnages(dessin);
+        // décor et persos
+        drawDecorAndCharacters(batch);
         if (player instanceof Player hugo && hugo.getWhiskyTime() > 0f) {
-            dessinerEffetWhisky(dessin, hugo.getWhiskyTime());
+            drawWhiskyTint(batch, hugo.getWhiskyTime());
         }
 
-        dessin.end();
+        batch.end();
     }
 
-    private void dessinerEffetWhisky(SpriteBatch dessin, float tempsRestant) {
-        float teinte = (MathUtils.sin(tempsRestant * 1.8f) + 1f) / 2f;
-        float rouge = MathUtils.lerp(0.58f, 1f, teinte);
-        float vert = MathUtils.lerp(0.24f, 0.76f, teinte);
-        float bleu = MathUtils.lerp(0.88f, 0.16f, teinte);
-        float opacite = 0.30f * Math.min(1f, tempsRestant);
+    // couleurs whisky
+    private void drawWhiskyTint(SpriteBatch batch, float remainingTime) {
+        float tint = (MathUtils.sin(remainingTime * 1.8f) + 1f) / 2f;
+        float red = MathUtils.lerp(0.58f, 1f, tint);
+        float green = MathUtils.lerp(0.24f, 0.76f, tint);
+        float blue = MathUtils.lerp(0.88f, 0.16f, tint);
+        float opacity = 0.30f * Math.min(1f, remainingTime);
 
-        dessin.setColor(rouge, vert, bleu, opacite);
-        dessin.draw(pixelBlanc, zoneVisible.x, zoneVisible.y, zoneVisible.width, zoneVisible.height);
-        dessin.setColor(Color.WHITE);
+        batch.setColor(red, green, blue, opacity);
+        batch.draw(whitePixel, visibleArea.x, visibleArea.y, visibleArea.width, visibleArea.height);
+        batch.setColor(Color.WHITE);
     }
 
-    private static Texture creerPixelBlanc() {
+    private static Texture createWhitePixel() {
         Pixmap pixel = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixel.setColor(Color.WHITE);
         pixel.fill();
@@ -175,220 +170,201 @@ public final class RenduCarte implements Disposable {
         return texture;
     }
 
-    // regarde quelle partie de la map est à l'écran
-    private void actualiserZoneVisible(OrthographicCamera camera) {
-        float largeur = camera.viewportWidth * camera.zoom;
-        float hauteur = camera.viewportHeight * camera.zoom;
+    // limites caméra
+    private void updateVisibleArea(OrthographicCamera camera) {
+        float width = camera.viewportWidth * camera.zoom;
+        float height = camera.viewportHeight * camera.zoom;
 
-        float gauche = camera.position.x - largeur / 2;
-        float haut = camera.position.y - hauteur / 2;
+        float left = camera.position.x - width / 2;
+        float top = camera.position.y - height / 2;
 
-        zoneVisible.set(gauche, haut, largeur, hauteur);
+        visibleArea.set(left, top, width, height);
     }
 
-    // première couche : herbe, terre, routes
-    private void dessinerSol(SpriteBatch dessin) {
-        int numeroMorceau = 0;
+    // herbe terre et routes
+    private void drawGround(SpriteBatch batch) {
+        int tileIndex = 0;
 
-        for (int y = 0; y < carte.height; y = y + 1024) {
-            for (int x = 0; x < carte.width; x = x + 1024) {
-                TextureRegion morceau = morceauxSol.get(numeroMorceau);
-
-                numeroMorceau = numeroMorceau + 1;
+        for (int y = 0; y < map.height; y = y + 1024) {
+            for (int x = 0; x < map.width; x = x + 1024) {
+                TextureRegion tile = groundTiles.get(tileIndex++);
 
                 Rectangle position = new Rectangle(
                     x,
                     y,
-                    morceau.getRegionWidth(),
-                    morceau.getRegionHeight()
+                    tile.getRegionWidth(),
+                    tile.getRegionHeight()
                 );
 
-                // dessine seulement si on le voit
-                if (zoneVisible.overlaps(position)) {
-                    dessin.draw(morceau, x, y);
+                // sol visible seulement
+                if (visibleArea.overlaps(position)) {
+                    batch.draw(tile, x, y);
                 }
             }
         }
     }
 
-    // les détails posés sur le sol
-    private void dessinerElementsAuSol(SpriteBatch dessin) {
-        for (ObjetDecor objet : carte.getEntities()) {
-            if (objet.ground && estVisible(objet)) {
-                dessinerObjet(dessin, objet);
+    // détails au sol
+    private void drawGroundDetails(SpriteBatch batch) {
+        for (ObjetDecor object : map.getEntities()) {
+            if (object.ground && isVisible(object)) {
+                drawObject(batch, object);
             }
         }
     }
 
     // ombres des objets
-    private void dessinerOmbres(SpriteBatch dessin) {
-        for (ObjetDecor objet : carte.getEntities()) {
-            if (!objet.ground && estVisible(objet)) {
-                dessinerOmbre(dessin, objet);
+    private void drawShadows(SpriteBatch batch) {
+        for (ObjetDecor object : map.getEntities()) {
+            if (!object.ground && isVisible(object)) {
+                drawShadow(batch, object);
             }
         }
     }
 
-    private void dessinerOmbre(
-        SpriteBatch dessin,
-        ObjetDecor objet
+    private void drawShadow(
+        SpriteBatch batch,
+        ObjetDecor object
     ) {
-        TypeDecor type = objet.getType();
+        TypeDecor type = object.getType();
 
-        ImagesDecor.GroundShadow ombre = images.shadow(type);
+        ImagesDecor.GroundShadow shadow = images.shadow(type);
 
-        float gauche = objet.x - type.width / 2f;
-        float haut = objet.y - type.height;
+        float left = object.x - type.width / 2f;
+        float top = object.y - type.height;
 
-        float transparence = 0.25f;
+        float opacity = type.footprint.equals("tree") ? 0.20f : 0.25f;
 
-        // ombre un peu plus légère pour les arbres
-        if (type.footprint.equals("tree")) {
-            transparence = 0.20f;
-        }
+        // ombre sur le côté
+        batch.setColor(0.10f, 0.13f, 0.09f, opacity);
 
-        // ombre qui part sur le côté
-        dessin.setColor(0.10f, 0.13f, 0.09f, transparence);
-
-        dessin.draw(
-            ombre.cast,
-            gauche,
-            haut,
-            ombre.width,
-            ombre.height
+        batch.draw(
+            shadow.cast,
+            left,
+            top,
+            shadow.width,
+            shadow.height
         );
 
-        // ombre au pied de l'objet
-        dessin.setColor(0.07f, 0.09f, 0.055f, 0.38f);
+        // ombre au pied
+        batch.setColor(0.07f, 0.09f, 0.055f, 0.38f);
 
-        dessin.draw(
-            ombre.contact,
-            gauche,
-            haut,
-            ombre.width,
-            ombre.height
+        batch.draw(
+            shadow.contact,
+            left,
+            top,
+            shadow.width,
+            shadow.height
         );
 
-        dessin.setColor(Color.WHITE);
+        batch.setColor(Color.WHITE);
     }
 
-    // met le perso devant ou derrière les objets
-    private void dessinerDecorEtPersonnages(SpriteBatch dessin) {
+    // persos devant ou derrière
+    private void drawDecorAndCharacters(SpriteBatch batch) {
         int nextCreature = 0;
-        dessin.setColor(Color.WHITE);
+        batch.setColor(Color.WHITE);
 
-        for (ObjetDecor objet : carte.getEntities()) {
-            if (objet.ground) {
+        for (ObjetDecor object : map.getEntities()) {
+            if (object.ground) {
                 continue;
             }
             while (nextCreature < drawOrder.size()
-                    && drawOrder.get(nextCreature).getY() < objet.y) {
-                drawOrder.get(nextCreature).draw(dessin);
+                    && drawOrder.get(nextCreature).getY() < object.y) {
+                drawOrder.get(nextCreature).draw(batch);
                 nextCreature++;
             }
-            if (estVisible(objet)) {
-                dessinerObjet(dessin, objet);
+            if (isVisible(object)) {
+                drawObject(batch, object);
             }
         }
 
         while (nextCreature < drawOrder.size()) {
-            drawOrder.get(nextCreature).draw(dessin);
+            drawOrder.get(nextCreature).draw(batch);
             nextCreature++;
         }
     }
 
-    // dessine l'image d'un objet à sa place
-    private void dessinerObjet(
-        SpriteBatch dessin,
-        ObjetDecor objet
+    // dessine un objet
+    private void drawObject(
+        SpriteBatch batch,
+        ObjetDecor object
     ) {
-        TypeDecor type = objet.getType();
+        TypeDecor type = object.getType();
 
         TextureRegion image = images.get(type);
 
-        float gauche = objet.x - type.width / 2f;
-        float hauteur = objet.getRenderHeight();
-        float haut = objet.y - hauteur;
+        float left = object.x - type.width / 2f;
+        float height = object.getRenderHeight();
+        float top = object.y - height;
 
-        dessin.draw(
-            image,
-            gauche,
-            haut,
-            type.width,
-            hauteur
-        );
+        batch.draw(image, left, top, type.width, height);
     }
 
-    // vérifie si l'objet est dans l'écran
-    private boolean estVisible(ObjetDecor objet) {
-        TypeDecor type = objet.getType();
+    // objet visible
+    private boolean isVisible(ObjetDecor object) {
+        TypeDecor type = object.getType();
 
-        float gauche = objet.x - type.width / 2f;
-        float haut = objet.y - type.height;
+        float left = object.x - type.width / 2f;
+        float top = object.y - type.height;
 
-        // garde un peu de place pour son ombre
-        float largeur = type.width + type.height * 0.25f;
-        float hauteur = type.height + type.height * 0.35f;
+        // place pour son ombre
+        float width = type.width + type.height * 0.25f;
+        float height = type.height + type.height * 0.35f;
 
         Rectangle position = new Rectangle(
-            gauche,
-            haut,
-            largeur,
-            hauteur
+            left,
+            top,
+            width,
+            height
         );
 
-        return zoneVisible.overlaps(position);
+        return visibleArea.overlaps(position);
     }
 
-    // F1 : montre les collisions en rouge
-    // le blocage du perso se fait dans CarteJeu
+    // collisions en rouge
     public void drawCollisions(OrthographicCamera camera) {
-        contours.setProjectionMatrix(camera.combined);
+        outlines.setProjectionMatrix(camera.combined);
 
-        contours.begin(ShapeRenderer.ShapeType.Line);
-        contours.setColor(1, 0.25f, 0.2f, 1);
+        outlines.begin(ShapeRenderer.ShapeType.Line);
+        outlines.setColor(1, 0.25f, 0.2f, 1);
 
-        // arbres, maisons, barrières : le perso ne traverse pas leur collision
-        for (ObjetDecor objet : carte.getEntities()) {
-            if (objet.collision != null && estVisible(objet)) {
-                dessinerRectangleCollision(objet.collision);
+        // collisions du décor
+        for (ObjetDecor object : map.getEntities()) {
+            if (object.collision != null && isVisible(object)) {
+                drawCollisionBox(object.collision);
             }
         }
 
         // murs des tranchées
-        for (Rectangle mur : carte.trenchWalls) {
-            dessinerRectangleCollision(mur);
+        for (Rectangle wall : map.trenchWalls) {
+            drawCollisionBox(wall);
         }
 
         // bord de la rivière
-        ZoneCarte riviere = carte.areas.get("riverShape");
+        ZoneCarte river = map.areas.get("riverShape");
 
-        for (float[] contour : riviere.polygons) {
-            contours.polygon(contour);
+        for (float[] outline : river.polygons) {
+            outlines.polygon(outline);
         }
 
-        contours.end();
+        outlines.end();
     }
 
-    // dessine un rectangle rouge
-    private void dessinerRectangleCollision(Rectangle rectangle) {
-        contours.rect(
-            rectangle.x,
-            rectangle.y,
-            rectangle.width,
-            rectangle.height
-        );
+    // dessine une collision
+    private void drawCollisionBox(Rectangle box) {
+        outlines.rect(box.x, box.y, box.width, box.height);
     }
 
-    // libère les images quand on ferme
+    // libère les images
     public void dispose() {
-        for (TextureRegion morceau : morceauxSol) {
-            morceau.getTexture().dispose();
+        for (TextureRegion tile : groundTiles) {
+            tile.getTexture().dispose();
         }
 
         images.dispose();
-        imagePetiteCarte.dispose();
-        contours.dispose();
-        pixelBlanc.dispose();
+        minimapBuffer.dispose();
+        outlines.dispose();
+        whitePixel.dispose();
     }
 }

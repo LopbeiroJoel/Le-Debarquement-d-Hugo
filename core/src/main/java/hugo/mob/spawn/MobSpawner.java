@@ -24,6 +24,7 @@ public class MobSpawner implements Disposable {
     private static final float SPAWN_DISTANCE = 750f;
     private static final float MIN_MOB_DISTANCE = 40f;
 
+    // mobs par vague
     private static final int[][] WAVE_COUNTS = {
         {5, 0,  0,  0, 0},
         {5, 8,  0,  0, 0},
@@ -41,6 +42,7 @@ public class MobSpawner implements Disposable {
         return mobs;
     }
 
+    // espace entre les mobs
     public boolean hasRoom(Mob movingMob, float nextX, float nextY) {
         for (Mob other : mobs) {
             if (other == movingMob || other.getLife().isDead()) {
@@ -51,6 +53,9 @@ public class MobSpawner implements Disposable {
             float dy = nextY - other.getY();
 
             float nextDistance = dx * dx + dy * dy;
+            if (nextDistance >= MIN_MOB_DISTANCE * MIN_MOB_DISTANCE) {
+                continue;
+            }
             if (movingMob != null) {
                 float currentDx = movingMob.getX() - other.getX();
                 float currentDy = movingMob.getY() - other.getY();
@@ -58,14 +63,13 @@ public class MobSpawner implements Disposable {
                     continue;
                 }
             }
-            if (nextDistance < MIN_MOB_DISTANCE * MIN_MOB_DISTANCE) {
-                return false;
-            }
+            return false;
         }
 
         return true;
     }
 
+    // spawn de la vague
     public void spawnWave(WaveManager waveManager, CarteJeu map, float hugoX, float hugoY) {
         int[] counts = WAVE_COUNTS[waveManager.getWave() - 1];
 
@@ -75,14 +79,15 @@ public class MobSpawner implements Disposable {
         }
 
         int mobIndex = 0;
-        double startAngle = Math.random() * 2 * Math.PI;
+        double fullCircle = 2 * Math.PI;
+        double startAngle = Math.random() * fullCircle;
         float distance = Math.max(SPAWN_DISTANCE, total * 9f);
 
         for (int typeIndex = 0; typeIndex < counts.length; typeIndex++) {
             int level = typeIndex + 1;
 
             for (int i = 0; i < counts[typeIndex]; i++) {
-                double angle = startAngle + 2 * Math.PI * mobIndex / total;
+                double angle = startAngle + fullCircle * mobIndex / total;
                 Vector2 position = findSpawnPosition(map, hugoX, hugoY, angle, distance);
 
                 Mob mob = createMob(level, position.x, position.y);
@@ -99,6 +104,7 @@ public class MobSpawner implements Disposable {
         System.out.println("Wave " + waveManager.getWave() + ": " + mobIndex + " mobs spawned");
     }
 
+    // trouve où spawn
     private Vector2 findSpawnPosition(CarteJeu map, float x, float y, double angle, float distance) {
         Vector2 bestPosition = new Vector2(x, y);
         float bestScore = -1f;
@@ -124,6 +130,7 @@ public class MobSpawner implements Disposable {
         return bestPosition;
     }
 
+    // choix du mob
     private Mob createMob(int level, float x, float y) {
         return switch (level) {
             case 2 -> new MobLvl2(
@@ -147,6 +154,7 @@ public class MobSpawner implements Disposable {
         };
     }
 
+    // parachute tue le mob
     public void defeat(Mob mob) {
         mob.takeDamage(mob.getLife().getCurrentLife());
         hasDefeatedMobs = true;
@@ -163,6 +171,7 @@ public class MobSpawner implements Disposable {
         }
     }
 
+    // balle en cuivre
     private TextureRegion getProjectileSprite() {
         if (projectileSprite == null) {
             Texture texture = textures.computeIfAbsent("projectiles/balle-hugo-cuivre.png", this::loadTexture);

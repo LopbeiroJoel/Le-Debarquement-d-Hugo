@@ -72,13 +72,10 @@ public class MobLvl1 extends Mob {
             }
         }
 
-        if (moving) {
-            walkTime = walkTime + deltaTime;
-        } else {
-            walkTime = 0;
-        }
+        walkTime = moving ? walkTime + deltaTime : 0f;
     }
 
+    // coup de matraque
     protected void onAttack() {
         playBatonAttack();
     }

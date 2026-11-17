@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import hugo.entity.Player;
 
 public final class XpBar {
+    // barre xp hugo
     public void draw(SpriteBatch batch, Texture pixel, BitmapFont font, Player player, int screenHeight) {
         float xp = player.getXp();
         float target = player.getXpToNextLevel();
