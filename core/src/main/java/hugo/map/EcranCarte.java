@@ -165,7 +165,7 @@ public final class EcranCarte extends ScreenAdapter {
         double tempsEcoule = Math.min(delta, 0.05);
 
         if (!hugoMort && !chestBonusMenu.isOpen() && !upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
-            upgradeMenu.open();
+            upgradeMenu.open(hugo);
         }
 
         if (hugoMort) {
