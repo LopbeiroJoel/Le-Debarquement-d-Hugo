@@ -1,86 +1,156 @@
-//clauder les ombres et les assets
-
 package hugo.map;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Disposable;
+
 import java.util.EnumMap;
 
 public final class ImagesDecor implements Disposable {
-    private final EnumMap<TypeDecor,TextureRegion> cache=new EnumMap<>(TypeDecor.class);
-    private final EnumMap<TypeDecor,GroundShadow> shadows=new EnumMap<>(TypeDecor.class);
-    public TextureRegion get(TypeDecor type){
-        TextureRegion ready=cache.get(type);
-        if(ready==null){
-            String suffix=type.path.contains("-v3.")?"-v3":"";
-            String path="render/sprites/"+type.name()+suffix+".png";
-            Pixmap pixels;
-            if(Gdx.files.internal(path).exists())pixels=new Pixmap(Gdx.files.internal(path));
-            else {
-                Pixmap source=new Pixmap(Gdx.files.internal(type.path.substring(1)));
-                int left=source.getWidth(),top=source.getHeight(),right=-1,bottom=-1;
-                for(int y=0;y<source.getHeight();y++)for(int x=0;x<source.getWidth();x++)if((source.getPixel(x,y)&255)>16){
-                    left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
-                }
-                if(right<left){source.dispose();throw new IllegalArgumentException("Sprite vide : "+type.path);}
-                pixels=new Pixmap(type.width*3,type.height*3,Pixmap.Format.RGBA8888);
-                pixels.setFilter(Pixmap.Filter.NearestNeighbour);
-                pixels.drawPixmap(source,left,top,right-left+1,bottom-top+1,0,0,pixels.getWidth(),pixels.getHeight());source.dispose();
-            }
-            shadows.put(type,createShadow(type,pixels));
-            Texture texture=new Texture(pixels);pixels.dispose();
-            texture.setFilter(Texture.TextureFilter.Nearest,Texture.TextureFilter.Nearest);
-            ready=new TextureRegion(texture);ready.flip(false,true);cache.put(type,ready);
+    private final EnumMap<TypeDecor, TextureRegion> sprites = new EnumMap<>(TypeDecor.class);
+    private final EnumMap<TypeDecor, GroundShadow> shadows = new EnumMap<>(TypeDecor.class);
+
+    // charge chaque sprite une fois
+    public TextureRegion get(TypeDecor type) {
+        TextureRegion sprite = sprites.get(type);
+        if (sprite != null) {
+            return sprite;
         }
-        return ready;
+
+        String suffix = type.path.contains("-v3.") ? "-v3" : "";
+        FileHandle file = Gdx.files.internal("render/sprites/" + type.name() + suffix + ".png");
+        Pixmap pixels = file.exists() ? new Pixmap(file) : loadOriginalSprite(type);
+        shadows.put(type, createShadow(type, pixels));
+
+        sprite = createRegion(pixels);
+        pixels.dispose();
+        sprites.put(type, sprite);
+        return sprite;
     }
+
+    // recadre le sprite si besoin
+    private Pixmap loadOriginalSprite(TypeDecor type) {
+        Pixmap source = new Pixmap(Gdx.files.internal(type.path.substring(1)));
+        int left = source.getWidth();
+        int top = source.getHeight();
+        int right = -1;
+        int bottom = -1;
+
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                if ((source.getPixel(x, y) & 255) > 16) {
+                    left = Math.min(left, x);
+                    top = Math.min(top, y);
+                    right = Math.max(right, x);
+                    bottom = Math.max(bottom, y);
+                }
+            }
+        }
+
+        if (right < left) {
+            source.dispose();
+            throw new IllegalArgumentException("Empty sprite: " + type.path);
+        }
+
+        Pixmap pixels = new Pixmap(type.width * 3, type.height * 3, Pixmap.Format.RGBA8888);
+        pixels.setFilter(Pixmap.Filter.NearestNeighbour);
+        pixels.drawPixmap(source, left, top, right - left + 1, bottom - top + 1,
+            0, 0, pixels.getWidth(), pixels.getHeight());
+        source.dispose();
+        return pixels;
+    }
+
+    private static TextureRegion createRegion(Pixmap pixels) {
+        Texture texture = new Texture(pixels);
+        texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        TextureRegion region = new TextureRegion(texture);
+        region.flip(false, true);
+        return region;
+    }
+
     public static final class GroundShadow {
-        public final TextureRegion cast,contact;
-        public final float width,height;
-        GroundShadow(Pixmap castPixels,Pixmap contactPixels){
-            width=castPixels.getWidth()/2f;height=castPixels.getHeight()/2f;
-            Texture castTexture=new Texture(castPixels),contactTexture=new Texture(contactPixels);
-            castTexture.setFilter(Texture.TextureFilter.Nearest,Texture.TextureFilter.Nearest);
-            contactTexture.setFilter(Texture.TextureFilter.Nearest,Texture.TextureFilter.Nearest);
-            cast=new TextureRegion(castTexture);cast.flip(false,true);
-            contact=new TextureRegion(contactTexture);contact.flip(false,true);
+        public final TextureRegion cast;
+        public final TextureRegion contact;
+        public final float width;
+        public final float height;
+
+        GroundShadow(Pixmap castPixels, Pixmap contactPixels) {
+            width = castPixels.getWidth() / 2f;
+            height = castPixels.getHeight() / 2f;
+            cast = createRegion(castPixels);
+            contact = createRegion(contactPixels);
         }
     }
-    private GroundShadow createShadow(TypeDecor type,Pixmap source){
-        int width=type.width*2,height=type.height*2;
-        int outWidth=width+(int)Math.ceil(height*.22)+4,outHeight=height+(int)Math.ceil(height*.14)+8;
-        Pixmap cast=new Pixmap(outWidth,outHeight,Pixmap.Format.RGBA8888);
-        Pixmap contact=new Pixmap(outWidth,outHeight,Pixmap.Format.RGBA8888);
-        cast.setBlending(Pixmap.Blending.None);contact.setBlending(Pixmap.Blending.None);
-        boolean tree=type.footprint.equals("tree");
-        for(int x=0;x<width;x++){
-            int sx=x*source.getWidth()/width,bottom=-1;
-            for(int y=height-1;y>=0;y--)if((source.getPixel(sx,y*source.getHeight()/height)&255)>128){bottom=y;break;}
-            if(bottom<0)continue;
-            int ground=tree?height-1:bottom;
-            for(int y=0;y<=bottom;y++){
-                int alpha=source.getPixel(sx,y*source.getHeight()/height)&255;
-                if(alpha<64)continue;
-                int depth=ground-y,px=x+Math.round(depth*.22f),py=ground+Math.round(depth*.14f);
-                cast.setColor(1,1,1,alpha/255f);cast.fillRectangle(px,py,2,2);
+
+    // prépare les ombres au sol
+    private GroundShadow createShadow(TypeDecor type, Pixmap source) {
+        int width = type.width * 2;
+        int height = type.height * 2;
+        int shadowWidth = width + (int) Math.ceil(height * 0.22) + 4;
+        int shadowHeight = height + (int) Math.ceil(height * 0.14) + 8;
+        Pixmap cast = new Pixmap(shadowWidth, shadowHeight, Pixmap.Format.RGBA8888);
+        Pixmap contact = new Pixmap(shadowWidth, shadowHeight, Pixmap.Format.RGBA8888);
+        cast.setBlending(Pixmap.Blending.None);
+        contact.setBlending(Pixmap.Blending.None);
+
+        boolean tree = type.footprint.equals("tree");
+        for (int x = 0; x < width; x++) {
+            int sourceX = x * source.getWidth() / width;
+            int bottom = height - 1;
+            while (bottom >= 0 && (source.getPixel(sourceX, bottom * source.getHeight() / height) & 255) <= 128) {
+                bottom--;
             }
-            if(!tree||Math.abs(x-width/2)<width*.13f){
-                int base=tree?height-1:bottom;
-                for(int offset=-2;offset<=5;offset++){
-                    int py=base+offset;if(py<0||py>=outHeight)continue;
-                    int alpha=Math.max(0,200-Math.abs(offset)*35);
-                    contact.drawPixel(x,py,0xffffff00|alpha);
+            if (bottom < 0) {
+                continue;
+            }
+
+            int ground = tree ? height - 1 : bottom;
+            for (int y = 0; y <= bottom; y++) {
+                int alpha = source.getPixel(sourceX, y * source.getHeight() / height) & 255;
+                if (alpha >= 64) {
+                    int depth = ground - y;
+                    int shadowX = x + Math.round(depth * 0.22f);
+                    int shadowY = ground + Math.round(depth * 0.14f);
+                    cast.setColor(1, 1, 1, alpha / 255f);
+                    cast.fillRectangle(shadowX, shadowY, 2, 2);
+                }
+            }
+
+            if (!tree || Math.abs(x - width / 2) < width * 0.13f) {
+                for (int offset = -2; offset <= 5; offset++) {
+                    int shadowY = ground + offset;
+                    if (shadowY >= 0 && shadowY < shadowHeight) {
+                        int alpha = Math.max(0, 200 - Math.abs(offset) * 35);
+                        contact.drawPixel(x, shadowY, 0xffffff00 | alpha);
+                    }
                 }
             }
         }
-        GroundShadow result=new GroundShadow(cast,contact);cast.dispose();contact.dispose();return result;
+
+        GroundShadow shadow = new GroundShadow(cast, contact);
+        cast.dispose();
+        contact.dispose();
+        return shadow;
     }
-    public GroundShadow shadow(TypeDecor type){get(type);return shadows.get(type);}
-    public void dispose(){
-        for(TextureRegion sprite:cache.values())sprite.getTexture().dispose();
-        for(GroundShadow shadow:shadows.values()){shadow.cast.getTexture().dispose();shadow.contact.getTexture().dispose();}cache.clear();shadows.clear();
+
+    public GroundShadow shadow(TypeDecor type) {
+        get(type);
+        return shadows.get(type);
+    }
+
+    @Override
+    public void dispose() {
+        for (TextureRegion sprite : sprites.values()) {
+            sprite.getTexture().dispose();
+        }
+        for (GroundShadow shadow : shadows.values()) {
+            shadow.cast.getTexture().dispose();
+            shadow.contact.getTexture().dispose();
+        }
+        sprites.clear();
+        shadows.clear();
     }
 }

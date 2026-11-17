@@ -7,6 +7,7 @@ public final class MobXp {
     private MobXp() {
     }
 
+    // xp par mob
     public static int rewardFor(int level, int cycle) {
         int baseReward = BASE_REWARDS[level - 1];
         double multiplier = Math.pow(CYCLE_MULTIPLIER, cycle - 1);

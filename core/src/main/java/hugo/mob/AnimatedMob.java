@@ -10,7 +10,6 @@ abstract class AnimatedMob extends Mob {
     private Animation<TextureRegion> action;
     private float walkTime;
     private float actionTime;
-    private boolean moving;
     private boolean facingLeft;
 
     protected AnimatedMob(Texture texture, float x, float y, int health, int speed,
@@ -20,6 +19,11 @@ abstract class AnimatedMob extends Mob {
     }
 
     protected static Animation<TextureRegion> readAnimation(Texture texture, float frameDuration) {
+        return new Animation<>(frameDuration, readFrames(texture));
+    }
+
+    // découpe le sprite en six images
+    protected static TextureRegion[] readFrames(Texture texture) {
         if (texture.getWidth() % 3 != 0 || texture.getHeight() % 2 != 0) {
             throw new IllegalArgumentException("Expected a 3-column, 2-row sprite sheet");
         }
@@ -34,7 +38,7 @@ abstract class AnimatedMob extends Mob {
             frames[i].flip(false, true);
         }
 
-        return new Animation<>(frameDuration, frames);
+        return frames;
     }
 
     protected void playAnimation(Animation<TextureRegion> animation) {
@@ -61,7 +65,7 @@ abstract class AnimatedMob extends Mob {
 
         super.update(deltaTime);
 
-        moving = x != previousX || y != previousY;
+        boolean moving = x != previousX || y != previousY;
         walkTime = moving ? walkTime + deltaTime : 0f;
         if (x != previousX) {
             facingLeft = x < previousX;

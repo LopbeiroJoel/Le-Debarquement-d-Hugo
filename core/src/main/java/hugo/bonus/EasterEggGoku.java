@@ -25,6 +25,7 @@ public final class EasterEggGoku {
     private float walkTime;
     private boolean moving;
 
+    // hugo passe super saiyan
     public void toggle(Player player, Texture pixel) {
         if (active) {
             player.getSpeed().removeMultiplier(SPEED_MULTIPLIER);

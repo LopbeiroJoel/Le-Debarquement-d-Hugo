@@ -3,6 +3,7 @@ package hugo.bonus;
 public final class HelmetBonus {
     private float remainingTime;
 
+    // hugo invincible
     public void activate() {
         remainingTime = 30f;
     }

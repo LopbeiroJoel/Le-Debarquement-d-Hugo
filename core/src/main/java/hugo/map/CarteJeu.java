@@ -1,4 +1,4 @@
-//Gere les colisions et l'ouverture des coffres
+// collisions et coffres
 
 package hugo.map;
 
@@ -27,8 +27,8 @@ public final class CarteJeu {
 
     public static final int[] BRIDGES = {1250, 3420};
 
-    private static final int TAILLE_CASE = 128;
-    private static final int COLONNES_GRILLE = 64;
+    private static final int CELL_SIZE = 128;
+    private static final int GRID_COLUMNS = 64;
 
     public final int width;
     public final int height;
@@ -42,71 +42,71 @@ public final class CarteJeu {
 
     public final Map<String, ZoneCarte> areas = new HashMap<>();
 
-    private Consumer<String> chestListener = identifiant -> {};
+    private Consumer<String> chestListener = id -> {};
 
     public CarteJeu() throws IOException {
-        JsonValue donnees = lireFichierCarte();
+        JsonValue data = readMapFile();
 
-        width = donnees.getInt("width");
-        height = donnees.getInt("height");
+        width = data.getInt("width");
+        height = data.getInt("height");
 
-        chargerZones(donnees);
-        chargerObjets(donnees);
-        ajouterMursTranchees();
+        loadAreas(data);
+        loadObjects(data);
+        addTrenchWalls();
 
-        Rectangle positionDepart = playerBox(SPAWN_X, SPAWN_Y);
+        Rectangle spawnPosition = playerBox(SPAWN_X, SPAWN_Y);
 
-        if (!canMove(positionDepart)) {
+        if (!canMove(spawnPosition)) {
             throw new IOException("Depart bloque");
         }
     }
 
-    private JsonValue lireFichierCarte() throws IOException {
+    private JsonValue readMapFile() throws IOException {
         try (
-            InputStream fichier = CarteJeu.class.getResourceAsStream(
+            InputStream file = CarteJeu.class.getResourceAsStream(
                 "/maps/carte.json"
             )
         ) {
-            if (fichier == null) {
+            if (file == null) {
                 throw new IOException("Map introuvable");
             }
 
-            JsonReader lecteur = new JsonReader();
+            JsonReader reader = new JsonReader();
 
-            return lecteur.parse(fichier);
+            return reader.parse(file);
         }
     }
 
-    private void chargerZones(JsonValue donnees) {
-        JsonValue zone = donnees.get("areas").child;
+    private void loadAreas(JsonValue data) {
+        JsonValue zone = data.get("areas").child;
 
         while (zone != null) {
-            ZoneCarte nouvelleZone = new ZoneCarte(zone);
+            ZoneCarte newArea = new ZoneCarte(zone);
 
-            areas.put(zone.name, nouvelleZone);
+            areas.put(zone.name, newArea);
 
             zone = zone.next;
         }
     }
 
-    private void chargerObjets(JsonValue donnees) {
-        JsonValue objet = donnees.get("entities").child;
+    private void loadObjects(JsonValue data) {
+        JsonValue object = data.get("entities").child;
 
-        while (objet != null) {
-            String nomType = objet.getString("type");
+        while (object != null) {
+            String typeName = object.getString("type");
 
-            TypeDecor type = TypeDecor.valueOf(nomType);
+            TypeDecor type = TypeDecor.valueOf(typeName);
 
-            float x = objet.getFloat("x");
-            float y = objet.getFloat("y");
+            float x = object.getFloat("x");
+            float y = object.getFloat("y");
 
             add(type, x, y);
 
-            objet = objet.next;
+            object = object.next;
         }
     }
 
-    private void ajouterMursTranchees() {
+    private void addTrenchWalls() {
         trenchWalls.add(new Rectangle(3330, 1620, 870, 18));
         trenchWalls.add(new Rectangle(3330, 1683, 830, 18));
 
@@ -118,52 +118,46 @@ public final class CarteJeu {
     }
 
     public void add(TypeDecor type, float x, float y) {
-        String identifiant = type.name() + "_" + entities.size();
+        String id = type.name() + "_" + entities.size();
 
-        ObjetDecor objet = new ObjetDecor(identifiant, type, x, y);
+        ObjetDecor object = new ObjetDecor(id, type, x, y);
 
-        entities.add(objet);
-        if (objet.isChest()) {
-            chests.add(objet);
+        entities.add(object);
+        if (object.isChest()) {
+            chests.add(object);
         }
 
         entities.sort(
-            Comparator.comparingDouble(element -> element.y)
+            Comparator.comparingDouble(entity -> entity.y)
         );
 
-        if (objet.collision != null) {
-            rangerCollision(objet);
+        if (object.collision != null) {
+            indexCollision(object);
         }
     }
 
-    private void rangerCollision(ObjetDecor objet) {
-        Rectangle collision = objet.collision;
+    private void indexCollision(ObjetDecor object) {
+        Rectangle collision = object.collision;
 
-        int premiereColonne = (int) collision.x / TAILLE_CASE;
+        int firstColumn = (int) collision.x / CELL_SIZE;
 
-        int derniereColonne =
-            (int) (collision.x + collision.width) / TAILLE_CASE;
+        int lastColumn =
+            (int) (collision.x + collision.width) / CELL_SIZE;
 
-        int premiereLigne = (int) collision.y / TAILLE_CASE;
+        int firstRow = (int) collision.y / CELL_SIZE;
 
-        int derniereLigne =
-            (int) (collision.y + collision.height) / TAILLE_CASE;
+        int lastRow =
+            (int) (collision.y + collision.height) / CELL_SIZE;
 
-        for (int ligne = premiereLigne; ligne <= derniereLigne; ligne++) {
+        for (int row = firstRow; row <= lastRow; row++) {
             for (
-                int colonne = premiereColonne;
-                colonne <= derniereColonne;
-                colonne++
+                int column = firstColumn;
+                column <= lastColumn;
+                column++
             ) {
-                int numeroCase = ligne * COLONNES_GRILLE + colonne;
+                int cell = row * GRID_COLUMNS + column;
 
-                if (!cells.containsKey(numeroCase)) {
-                    cells.put(numeroCase, new ArrayList<>());
-                }
-
-                List<ObjetDecor> objetsCase = cells.get(numeroCase);
-
-                objetsCase.add(objet);
+                cells.computeIfAbsent(cell, key -> new ArrayList<>()).add(object);
             }
         }
     }
@@ -176,83 +170,65 @@ public final class CarteJeu {
         return Collections.unmodifiableList(entities);
     }
 
-    public boolean overlapsRoad(ObjetDecor objet) {
-        TypeDecor type = objet.getType();
+    public boolean overlapsRoad(ObjetDecor object) {
+        TypeDecor type = object.getType();
 
-        float gauche = objet.x - type.width / 2f;
-        float haut = objet.y - type.height;
+        float left = object.x - type.width / 2f;
+        float top = object.y - type.height;
 
-        Rectangle imageObjet = new Rectangle(
-            gauche,
-            haut,
+        Rectangle objectBounds = new Rectangle(
+            left,
+            top,
             type.width,
             type.height
         );
 
-        ZoneCarte routes = areas.get("roads");
+        ZoneCarte roads = areas.get("roads");
 
-        return routes.intersects(imageObjet);
+        return roads.intersects(objectBounds);
     }
 
-    public static Rectangle playerBox(float x, float piedsY) {
-        return new Rectangle(x - 11, piedsY - 17, 22, 17);
+    public static Rectangle playerBox(float x, float feetY) {
+        return new Rectangle(x - 11, feetY - 17, 22, 17);
     }
 
-    public boolean canMove(Rectangle position) { //LES COLISIONS VIA LE GET ! C'EST ICI !!!!
-        if (depasseLimites(position)) {
+    // collisions de la map
+    public boolean canMove(Rectangle position) {
+        if (isOutsideMap(position)) {
             return false;
         }
 
-        ZoneCarte riviere = areas.get("riverShape");
+        ZoneCarte river = areas.get("riverShape");
 
-        if (!estSurPont(position) && riviere.intersects(position)) {
+        if (!isOnBridge(position) && river.intersects(position)) {
             return false;
         }
 
-        for (Rectangle mur : trenchWalls) {
-            if (mur.overlaps(position)) {
+        for (Rectangle wall : trenchWalls) {
+            if (wall.overlaps(position)) {
                 return false;
             }
         }
 
-        if (toucheDecor(position)) {
-            return false;
-        }
-
-        return true;
+        return !hitsDecor(position);
     }
 
-    private boolean depasseLimites(Rectangle position) {
-        if (position.x < 0) {
-            return true;
-        }
-
-        if (position.y < 0) {
-            return true;
-        }
-
-        if (position.x + position.width > width) {
-            return true;
-        }
-
-        if (position.y + position.height > height) {
-            return true;
-        }
-
-        return false;
+    private boolean isOutsideMap(Rectangle position) {
+        return position.x < 0 || position.y < 0
+            || position.x + position.width > width || position.y + position.height > height;
     }
 
-    private boolean estSurPont(Rectangle position) {
-        float gaucheJoueur = position.x;
-        float droiteJoueur = position.x + position.width;
+    private boolean isOnBridge(Rectangle position) {
+        float playerLeft = position.x;
+        float playerRight = position.x + position.width;
 
-        for (int centrePont : BRIDGES) {
-            float gauchePont = centrePont - 60;
-            float droitePont = centrePont + 60;
+        for (int bridgeCenter : BRIDGES) {
+            float bridgeLeft = bridgeCenter - 60;
+            float bridgeRight = bridgeCenter + 60;
 
             if (
-                gaucheJoueur >= gauchePont &&
-                droiteJoueur <= droitePont
+                playerLeft >= bridgeLeft &&
+                playerRight <= bridgeRight
             ) {
                 return true;
             }
@@ -261,30 +237,30 @@ public final class CarteJeu {
         return false;
     }
 
-    private boolean toucheDecor(Rectangle position) {
-        int premiereColonne = (int) position.x / TAILLE_CASE;
+    private boolean hitsDecor(Rectangle position) {
+        int firstColumn = (int) position.x / CELL_SIZE;
 
-        int derniereColonne =
-            (int) (position.x + position.width) / TAILLE_CASE;
+        int lastColumn =
+            (int) (position.x + position.width) / CELL_SIZE;
 
-        int premiereLigne = (int) position.y / TAILLE_CASE;
+        int firstRow = (int) position.y / CELL_SIZE;
 
-        int derniereLigne =
-            (int) (position.y + position.height) / TAILLE_CASE;
+        int lastRow =
+            (int) (position.y + position.height) / CELL_SIZE;
 
-        for (int ligne = premiereLigne; ligne <= derniereLigne; ligne++) {
+        for (int row = firstRow; row <= lastRow; row++) {
             for (
-                int colonne = premiereColonne;
-                colonne <= derniereColonne;
-                colonne++
+                int column = firstColumn;
+                column <= lastColumn;
+                column++
             ) {
-                int numeroCase = ligne * COLONNES_GRILLE + colonne;
+                int cell = row * GRID_COLUMNS + column;
 
-                List<ObjetDecor> objetsCase = cells.get(numeroCase);
+                List<ObjetDecor> cellObjects = cells.get(cell);
 
-                if (objetsCase != null) {
-                    for (ObjetDecor objet : objetsCase) {
-                        if (objet.collision.overlaps(position)) {
+                if (cellObjects != null) {
+                    for (ObjetDecor object : cellObjects) {
+                        if (object.collision.overlaps(position)) {
                             return true;
                         }
                     }
@@ -295,74 +271,47 @@ public final class CarteJeu {
         return false;
     }
 
+    // avance par petits pas
     public Vector2 move(float x, float y, float dx, float dy) {
-        float distanceHorizontale = Math.abs(dx);
-        float distanceVerticale = Math.abs(dy);
+        float distance = Math.max(Math.abs(dx), Math.abs(dy));
+        int steps = Math.max(1, (int) Math.ceil(distance / 4));
 
-        float plusGrandeDistance = Math.max(
-            distanceHorizontale,
-            distanceVerticale
-        );
+        float stepX = dx / steps;
+        float stepY = dy / steps;
 
-        int nombrePas = (int) Math.ceil(plusGrandeDistance / 4);
+        for (int step = 0; step < steps; step++) {
+            Rectangle nextX = playerBox(x + stepX, y);
 
-        if (nombrePas < 1) {
-            nombrePas = 1;
-        }
-
-        float petitPasX = dx / nombrePas;
-        float petitPasY = dy / nombrePas;
-
-        for (int pas = 0; pas < nombrePas; pas++) {
-            Rectangle prochainePositionX = playerBox(x + petitPasX, y);
-
-            if (canMove(prochainePositionX)) {
-                x = x + petitPasX;
+            if (canMove(nextX)) {
+                x += stepX;
             }
 
-            Rectangle prochainePositionY = playerBox(x, y + petitPasY);
+            Rectangle nextY = playerBox(x, y + stepY);
 
-            if (canMove(prochainePositionY)) {
-                y = y + petitPasY;
+            if (canMove(nextY)) {
+                y += stepY;
             }
         }
 
         return new Vector2(x, y);
     }
 
+    // murs bloquent les tirs
     public boolean blocksShot(
-        float departX,
-        float departY,
-        float arriveeX,
-        float arriveeY
+        float startX,
+        float startY,
+        float endX,
+        float endY
     ) {
-        for (Rectangle mur : trenchWalls) {
-            boolean toucheMur = ZoneCarte.segment(
-                mur,
-                departX,
-                departY,
-                arriveeX,
-                arriveeY
-            );
-
-            if (toucheMur) {
+        for (Rectangle wall : trenchWalls) {
+            if (ZoneCarte.segment(wall, startX, startY, endX, endY)) {
                 return true;
             }
         }
 
-        for (ObjetDecor objet : entities) {
-            if (objet.collision != null) {
-                boolean toucheObjet = ZoneCarte.segment(
-                    objet.collision,
-                    departX,
-                    departY,
-                    arriveeX,
-                    arriveeY
-                );
-
-                if (toucheObjet) {
-                    return true;
-                }
+        for (ObjetDecor object : entities) {
+            if (object.collision != null && ZoneCarte.segment(object.collision, startX, startY, endX, endY)) {
+                return true;
             }
         }
 
@@ -370,13 +319,10 @@ public final class CarteJeu {
     }
 
     public void setChestListener(Consumer<String> action) {
-        if (action == null) {
-            chestListener = identifiant -> {};
-        } else {
-            chestListener = action;
-        }
+        chestListener = action == null ? id -> {} : action;
     }
 
+    // hugo approche du coffre
     public void updateTriggers(float x, float y) {
         for (ObjetDecor chest : chests) {
             chest.checkChestTrigger(Vector2.dst2(x, y, chest.x, chest.y) < 68f * 68f);

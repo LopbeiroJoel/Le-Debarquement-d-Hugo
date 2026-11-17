@@ -18,6 +18,7 @@ public final class BonusAnimation implements Disposable {
         this.frameDuration = frameDuration;
     }
 
+    // lance l’animation
     public void play() {
         if (animation == null) {
             sheet = new Texture(assetPath);

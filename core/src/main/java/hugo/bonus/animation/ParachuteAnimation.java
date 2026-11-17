@@ -31,6 +31,7 @@ public final class ParachuteAnimation implements Disposable {
         elapsed = Math.min(DURATION, elapsed + delta);
     }
 
+    // hugo descend en parachute
     public void draw(SpriteBatch batch, float hugoX, float hugoY) {
         if (elapsed >= DURATION) {
             return;
