@@ -27,6 +27,20 @@ public final class TestsArmes {
         check(!Float.isNaN(same.get(0).getDirX()), "pas de NaN en X");
         check(!Float.isNaN(same.get(0).getDirY()), "pas de NaN en Y");
 
+                // Pistolet-mitrailleur : faible, tres rapide, courte portee
+        Weapon smg = Weapons.submachineGun();
+        check(smg.getBaseDamage() == 3, "PM : degats");
+        check(smg.getBaseFireDelay() == 0.2f, "PM : delai");
+        check(smg.getBaseRange() == 350, "PM : portee");
+        check(smg.fire(null, 0, 0, 100, 0, 3, 350).size() == 1, "PM : une balle");
+
+        // Mitrailleuse : forte, cadence moyenne, longue portee
+        Weapon machineGun = Weapons.machineGun();
+        check(machineGun.getBaseDamage() == 12, "mitrailleuse : degats");
+        check(machineGun.getBaseFireDelay() == 0.4f, "mitrailleuse : delai");
+        check(machineGun.getBaseRange() == 600, "mitrailleuse : portee");
+        check(machineGun.fire(null, 0, 0, 100, 0, 12, 600).size() == 1, "mitrailleuse : une balle");
+
         System.out.println("TestsArmes : tout passe");
     }
 }
