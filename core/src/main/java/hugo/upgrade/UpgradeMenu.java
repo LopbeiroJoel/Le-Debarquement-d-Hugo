@@ -50,8 +50,8 @@ public class UpgradeMenu {
         return open;
     }
 
-    public void open() {
-        choices = pool.pickRandom(CHOICE_COUNT);    
+    public void open(Player player) {
+        choices = pool.pickRandom(CHOICE_COUNT, player); 
         open = true;
     }
 
@@ -87,7 +87,7 @@ public class UpgradeMenu {
         player.consumePendingUpgrade();                               
 
         if (player.getPendingUpgrades() > 0) {
-            open();                                        
+            open(player);                                        
         } else {
             open = false;                                   
         }

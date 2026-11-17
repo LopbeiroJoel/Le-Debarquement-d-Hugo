@@ -23,8 +23,22 @@ tasks.register('verifierCarte', JavaExec) {
 }
 tasks.named('test') {
   dependsOn verifierCarte
+  dependsOn verifierArmes
+  dependsOn verifierPool
   failOnNoDiscoveredTests = false
 }
 tasks.named('check') {
   dependsOn verifierCarte
+}
+
+tasks.register('verifierArmes', JavaExec) {
+  dependsOn testClasses
+  classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'hugo.weapon.TestsArmes'
+}
+
+tasks.register('verifierPool', JavaExec) {
+  dependsOn testClasses
+  classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'hugo.upgrade.TestsPool'
 }

@@ -165,7 +165,7 @@ public final class EcranCarte extends ScreenAdapter {
         double tempsEcoule = Math.min(delta, 0.05);
 
         if (!hugoMort && !chestBonusMenu.isOpen() && !upgradeMenu.isOpen() && hugo.getPendingUpgrades() > 0) {
-            upgradeMenu.open();
+            upgradeMenu.open(hugo);
         }
 
         if (hugoMort) {
@@ -263,9 +263,10 @@ public final class EcranCarte extends ScreenAdapter {
         if (hugo.canShoot()) {
               Mob cible = trouverMobLePlusProche();
             if (cible != null) {                                   
-                Projectile projectile = hugo.shoot(balleHugo, cible);
-                projectile.setMap(carte);
-                projectiles.add(projectile);
+                for (Projectile projectile : hugo.shoot(balleHugo, cible)) {
+                    projectile.setMap(carte);
+                    projectiles.add(projectile);
+                }
             }
         }
 
@@ -300,7 +301,7 @@ public final class EcranCarte extends ScreenAdapter {
     private Mob trouverMobLePlusProche() {
         Mob plusProche = null;                       
         float meilleureDistance = Float.MAX_VALUE;     
-        float portee = hugo.getAttackRange().getValue();
+        float portee = hugo.getShootRange();
 
         for (Mob mob : mobSpawner.getMobs()) {
             if (mob.getLife().isDead()) {
