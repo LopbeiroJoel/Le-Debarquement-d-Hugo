@@ -70,7 +70,7 @@ public class Player extends Creature {
     private float xpToNextLevel = FIRST_LEVEL_XP;
     private int pendingUpgrades = 0;
     private int kills = 0;
-    private Weapon weapon = Weapons.shotgun();
+    private Weapon weapon = Weapons.carbine();
 
     public Player(Texture sheet, float x, float y) {
         super(new TextureRegion(sheet, 0, 0, FRAME_WIDTH, FRAME_HEIGHT), x, y, MAX_LIFE, BASE_SPEED, WIDTH, HEIGHT, ATTACK_RANGE, ATTACK_DAMAGE, HITBOX_SIZE);
