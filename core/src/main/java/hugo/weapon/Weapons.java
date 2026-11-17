@@ -16,4 +16,8 @@ public final class Weapons {
     public static Weapon machineGun() {
         return new SingleShotWeapon("Mitrailleuse", "machine-gun", 12, 0.4f, 600, 1200.0f, 10.0f);
     }
+
+    public static Weapon shotgun() {
+        return new ShotgunWeapon("Fusil à pompe", "shotgun", 6, 1.4f, 300, 900.0f, 6.0f, 5, 40.0f);
+    }
 }

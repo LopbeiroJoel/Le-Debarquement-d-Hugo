@@ -23,6 +23,7 @@ public class UpgradePool {
         upgrades.add(new MaxLifeUpgrade("+20 % de vie maximum", "max-life", 1.2f));
         upgrades.add(new WeaponUpgrade("Pistolet-mitrailleur", "submachine-gun", () -> Weapons.submachineGun(), 0.7f));
         upgrades.add(new WeaponUpgrade("Mitrailleuse", "machine-gun", () -> Weapons.machineGun(), 0.3f));
+        upgrades.add(new WeaponUpgrade("Fusil à pompe", "shotgun", () -> Weapons.shotgun(), 0.7f));
 
     }
 
