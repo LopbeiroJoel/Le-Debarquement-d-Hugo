@@ -15,30 +15,37 @@ jar {
 }
 
 
-tasks.register('verifierCarte', JavaExec) {
+tasks.register('verifyWorld', JavaExec) {
   dependsOn testClasses
   classpath = sourceSets.test.runtimeClasspath + files(rootProject.file('assets'))
-  mainClass = 'hugo.map.TestsMonde'
+  mainClass = 'hugo.map.WorldTests'
   maxHeapSize = '512m'
 }
 tasks.named('test') {
-  dependsOn verifierCarte
-  dependsOn verifierArmes
-  dependsOn verifierPool
+  dependsOn verifyWorld
+  dependsOn verifyWeapons
+  dependsOn verifyUpgrades
+  dependsOn verifyWaves
   failOnNoDiscoveredTests = false
 }
 tasks.named('check') {
-  dependsOn verifierCarte
+  dependsOn verifyWorld
 }
 
-tasks.register('verifierArmes', JavaExec) {
+tasks.register('verifyWeapons', JavaExec) {
   dependsOn testClasses
   classpath = sourceSets.test.runtimeClasspath
-  mainClass = 'hugo.weapon.TestsArmes'
+  mainClass = 'hugo.weapon.WeaponTests'
 }
 
-tasks.register('verifierPool', JavaExec) {
+tasks.register('verifyUpgrades', JavaExec) {
   dependsOn testClasses
   classpath = sourceSets.test.runtimeClasspath
-  mainClass = 'hugo.upgrade.TestsPool'
+  mainClass = 'hugo.upgrade.UpgradePoolTests'
+}
+
+tasks.register('verifyWaves', JavaExec) {
+  dependsOn testClasses
+  classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'hugo.wave.WaveTests'
 }

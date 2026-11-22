@@ -16,7 +16,7 @@ public class MobLvl3 extends AnimatedMob {
         playAnimation(slash);
     }
 
-    // coup de machette
+    // machete attack
     protected void onAttack() {
         playMacheteAttack();
     }

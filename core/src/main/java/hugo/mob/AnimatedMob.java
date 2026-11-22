@@ -12,8 +12,15 @@ abstract class AnimatedMob extends Mob {
     private float actionTime;
     private boolean facingLeft;
 
-    protected AnimatedMob(Texture texture, float x, float y, int health, int speed,
-                          int size, int hitboxSize, float frameDuration) {
+    protected AnimatedMob(
+            Texture texture,
+            float x,
+            float y,
+            int health,
+            int speed,
+            int size,
+            int hitboxSize,
+            float frameDuration) {
         super(texture, x, y, health, speed, size, size, hitboxSize, 0f);
         walk = readAnimation(texture, frameDuration);
     }
@@ -22,15 +29,14 @@ abstract class AnimatedMob extends Mob {
         return new Animation<>(frameDuration, readFrames(texture));
     }
 
-    // découpe le sprite en six images
+    // split the sheet into six frames
     protected static TextureRegion[] readFrames(Texture texture) {
         if (texture.getWidth() % 3 != 0 || texture.getHeight() % 2 != 0) {
             throw new IllegalArgumentException("Expected a 3-column, 2-row sprite sheet");
         }
 
-        TextureRegion[][] grid = TextureRegion.split(
-            texture, texture.getWidth() / 3, texture.getHeight() / 2
-        );
+        TextureRegion[][] grid =
+                TextureRegion.split(texture, texture.getWidth() / 3, texture.getHeight() / 2);
         TextureRegion[] frames = new TextureRegion[6];
 
         for (int i = 0; i < frames.length; i++) {
@@ -80,9 +86,10 @@ abstract class AnimatedMob extends Mob {
     }
 
     public void draw(SpriteBatch batch) {
-        TextureRegion frame = action == null
-            ? walk.getKeyFrame(walkTime, true)
-            : action.getKeyFrame(actionTime, false);
+        TextureRegion frame =
+                action == null
+                        ? walk.getKeyFrame(walkTime, true)
+                        : action.getKeyFrame(actionTime, false);
 
         if (frame.isFlipX() != facingLeft) {
             frame.flip(true, false);

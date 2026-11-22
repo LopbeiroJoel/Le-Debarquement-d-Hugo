@@ -3,9 +3,9 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Lancer le jeu libGDX",
+      "name": "Run le game libGDX",
       "request": "launch",
-      "mainClass": "hugo.bureau.LanceurBureau",
+      "mainClass": "hugo.desktop.DesktopLauncher",
       "cwd": "${workspaceFolder}/assets",
       "vmArgs": "--enable-native-access=ALL-UNNAMED --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED"
     }

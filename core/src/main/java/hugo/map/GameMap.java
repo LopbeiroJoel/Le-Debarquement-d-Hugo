@@ -1,4 +1,4 @@
-// collisions et coffres
+// map collisions and chests
 
 package hugo.map;
 
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public final class CarteJeu {
+public final class GameMap {
 
     public static final float SPAWN_X = 2200;
     public static final float SPAWN_Y = 1500;
@@ -33,18 +33,18 @@ public final class CarteJeu {
     public final int width;
     public final int height;
 
-    private final List<ObjetDecor> entities = new ArrayList<>();
-    private final List<ObjetDecor> chests = new ArrayList<>();
+    private final List<DecorObject> entities = new ArrayList<>();
+    private final List<DecorObject> chests = new ArrayList<>();
 
-    private final Map<Integer, List<ObjetDecor>> cells = new HashMap<>();
+    private final Map<Integer, List<DecorObject>> cells = new HashMap<>();
 
     public final List<Rectangle> trenchWalls = new ArrayList<>();
 
-    public final Map<String, ZoneCarte> areas = new HashMap<>();
+    public final Map<String, MapArea> areas = new HashMap<>();
 
     private Consumer<String> chestListener = id -> {};
 
-    public CarteJeu() throws IOException {
+    public GameMap() throws IOException {
         JsonValue data = readMapFile();
 
         width = data.getInt("width");
@@ -57,18 +57,14 @@ public final class CarteJeu {
         Rectangle spawnPosition = playerBox(SPAWN_X, SPAWN_Y);
 
         if (!canMove(spawnPosition)) {
-            throw new IOException("Depart bloque");
+            throw new IOException("Spawn position is blocked");
         }
     }
 
     private JsonValue readMapFile() throws IOException {
-        try (
-            InputStream file = CarteJeu.class.getResourceAsStream(
-                "/maps/carte.json"
-            )
-        ) {
+        try (InputStream file = GameMap.class.getResourceAsStream("/maps/carte.json")) {
             if (file == null) {
-                throw new IOException("Map introuvable");
+                throw new IOException("Map file not found");
             }
 
             JsonReader reader = new JsonReader();
@@ -81,7 +77,7 @@ public final class CarteJeu {
         JsonValue zone = data.get("areas").child;
 
         while (zone != null) {
-            ZoneCarte newArea = new ZoneCarte(zone);
+            MapArea newArea = new MapArea(zone);
 
             areas.put(zone.name, newArea);
 
@@ -95,7 +91,7 @@ public final class CarteJeu {
         while (object != null) {
             String typeName = object.getString("type");
 
-            TypeDecor type = TypeDecor.valueOf(typeName);
+            DecorType type = DecorType.valueOf(typeName);
 
             float x = object.getFloat("x");
             float y = object.getFloat("y");
@@ -117,47 +113,44 @@ public final class CarteJeu {
         trenchWalls.add(new Rectangle(3510, 2073, 810, 18));
     }
 
-    public void add(TypeDecor type, float x, float y) {
+    public void add(DecorType type, float x, float y) {
         String id = type.name() + "_" + entities.size();
 
-        ObjetDecor object = new ObjetDecor(id, type, x, y);
+        DecorObject object = new DecorObject(id, type, x, y);
 
         entities.add(object);
         if (object.isChest()) {
             chests.add(object);
         }
 
-        entities.sort(
-            Comparator.comparingDouble(entity -> entity.y)
-        );
+        entities.sort(Comparator.comparingDouble(entity -> entity.y));
 
         if (object.collision != null) {
             indexCollision(object);
         }
     }
 
-    private void indexCollision(ObjetDecor object) {
+    private void indexCollision(DecorObject object) {
         Rectangle collision = object.collision;
 
         int firstColumn = (int) collision.x / CELL_SIZE;
 
-        int lastColumn =
-            (int) (collision.x + collision.width) / CELL_SIZE;
+        int lastColumn = (int) (collision.x + collision.width) / CELL_SIZE;
 
         int firstRow = (int) collision.y / CELL_SIZE;
 
-        int lastRow =
-            (int) (collision.y + collision.height) / CELL_SIZE;
+        int lastRow = (int) (collision.y + collision.height) / CELL_SIZE;
 
         for (int row = firstRow; row <= lastRow; row++) {
-            for (
-                int column = firstColumn;
-                column <= lastColumn;
-                column++
-            ) {
+            for (int column = firstColumn; column <= lastColumn; column++) {
                 int cell = row * GRID_COLUMNS + column;
 
-                cells.computeIfAbsent(cell, key -> new ArrayList<>()).add(object);
+                List<DecorObject> cellObjects = cells.get(cell);
+                if (cellObjects == null) {
+                    cellObjects = new ArrayList<>();
+                    cells.put(cell, cellObjects);
+                }
+                cellObjects.add(object);
             }
         }
     }
@@ -166,24 +159,19 @@ public final class CarteJeu {
         return entities.size();
     }
 
-    public List<ObjetDecor> getEntities() {
+    public List<DecorObject> getEntities() {
         return Collections.unmodifiableList(entities);
     }
 
-    public boolean overlapsRoad(ObjetDecor object) {
-        TypeDecor type = object.getType();
+    public boolean overlapsRoad(DecorObject object) {
+        DecorType type = object.getType();
 
         float left = object.x - type.width / 2f;
         float top = object.y - type.height;
 
-        Rectangle objectBounds = new Rectangle(
-            left,
-            top,
-            type.width,
-            type.height
-        );
+        Rectangle objectBounds = new Rectangle(left, top, type.width, type.height);
 
-        ZoneCarte roads = areas.get("roads");
+        MapArea roads = areas.get("roads");
 
         return roads.intersects(objectBounds);
     }
@@ -192,13 +180,13 @@ public final class CarteJeu {
         return new Rectangle(x - 11, feetY - 17, 22, 17);
     }
 
-    // collisions de la map
+    // map collisions
     public boolean canMove(Rectangle position) {
         if (isOutsideMap(position)) {
             return false;
         }
 
-        ZoneCarte river = areas.get("riverShape");
+        MapArea river = areas.get("riverShape");
 
         if (!isOnBridge(position) && river.intersects(position)) {
             return false;
@@ -214,8 +202,10 @@ public final class CarteJeu {
     }
 
     private boolean isOutsideMap(Rectangle position) {
-        return position.x < 0 || position.y < 0
-            || position.x + position.width > width || position.y + position.height > height;
+        return position.x < 0
+                || position.y < 0
+                || position.x + position.width > width
+                || position.y + position.height > height;
     }
 
     private boolean isOnBridge(Rectangle position) {
@@ -226,10 +216,7 @@ public final class CarteJeu {
             float bridgeLeft = bridgeCenter - 60;
             float bridgeRight = bridgeCenter + 60;
 
-            if (
-                playerLeft >= bridgeLeft &&
-                playerRight <= bridgeRight
-            ) {
+            if (playerLeft >= bridgeLeft && playerRight <= bridgeRight) {
                 return true;
             }
         }
@@ -240,26 +227,20 @@ public final class CarteJeu {
     private boolean hitsDecor(Rectangle position) {
         int firstColumn = (int) position.x / CELL_SIZE;
 
-        int lastColumn =
-            (int) (position.x + position.width) / CELL_SIZE;
+        int lastColumn = (int) (position.x + position.width) / CELL_SIZE;
 
         int firstRow = (int) position.y / CELL_SIZE;
 
-        int lastRow =
-            (int) (position.y + position.height) / CELL_SIZE;
+        int lastRow = (int) (position.y + position.height) / CELL_SIZE;
 
         for (int row = firstRow; row <= lastRow; row++) {
-            for (
-                int column = firstColumn;
-                column <= lastColumn;
-                column++
-            ) {
+            for (int column = firstColumn; column <= lastColumn; column++) {
                 int cell = row * GRID_COLUMNS + column;
 
-                List<ObjetDecor> cellObjects = cells.get(cell);
+                List<DecorObject> cellObjects = cells.get(cell);
 
                 if (cellObjects != null) {
-                    for (ObjetDecor object : cellObjects) {
+                    for (DecorObject object : cellObjects) {
                         if (object.collision.overlaps(position)) {
                             return true;
                         }
@@ -271,7 +252,7 @@ public final class CarteJeu {
         return false;
     }
 
-    // avance par petits pas
+    // move in small steps
     public Vector2 move(float x, float y, float dx, float dy) {
         float distance = Math.max(Math.abs(dx), Math.abs(dy));
         int steps = Math.max(1, (int) Math.ceil(distance / 4));
@@ -296,21 +277,17 @@ public final class CarteJeu {
         return new Vector2(x, y);
     }
 
-    // murs bloquent les tirs
-    public boolean blocksShot(
-        float startX,
-        float startY,
-        float endX,
-        float endY
-    ) {
+    // walls stop bullets
+    public boolean blocksShot(float startX, float startY, float endX, float endY) {
         for (Rectangle wall : trenchWalls) {
-            if (ZoneCarte.segment(wall, startX, startY, endX, endY)) {
+            if (MapArea.segment(wall, startX, startY, endX, endY)) {
                 return true;
             }
         }
 
-        for (ObjetDecor object : entities) {
-            if (object.collision != null && ZoneCarte.segment(object.collision, startX, startY, endX, endY)) {
+        for (DecorObject object : entities) {
+            if (object.collision != null
+                    && MapArea.segment(object.collision, startX, startY, endX, endY)) {
                 return true;
             }
         }
@@ -322,15 +299,15 @@ public final class CarteJeu {
         chestListener = action == null ? id -> {} : action;
     }
 
-    // hugo approche du coffre
+    // hugo approaches the chest
     public void updateTriggers(float x, float y) {
-        for (ObjetDecor chest : chests) {
+        for (DecorObject chest : chests) {
             chest.checkChestTrigger(Vector2.dst2(x, y, chest.x, chest.y) < 68f * 68f);
         }
     }
 
     public void updateChests(float delta) {
-        for (ObjetDecor chest : chests) {
+        for (DecorObject chest : chests) {
             if (chest.updateChest(delta)) {
                 chestListener.accept(chest.id);
             }
@@ -338,36 +315,36 @@ public final class CarteJeu {
     }
 
     public void reset() {
-        for (ObjetDecor chest : chests) {
+        for (DecorObject chest : chests) {
             chest.reset();
         }
     }
 
     public String zoneAt(float x, float y) {
         if (y > WATER_TOP - 80 && y < WATER_BOTTOM + 100) {
-            return "RIVIERE";
+            return "RIVER";
         }
 
         if (areas.get("base").contains(x, y)) {
-            return "BASE MILITAIRE";
+            return "MILITARY BASE";
         }
 
         if (areas.get("trenches").contains(x, y)) {
-            return "LES TRANCHEES";
+            return "TRENCHES";
         }
 
         if (areas.get("village").contains(x, y)) {
-            return "VILLAGE EN RUINE";
+            return "RUINED VILLAGE";
         }
 
         if (areas.get("forest").contains(x, y)) {
-            return "FORET DU NORD";
+            return "NORTHERN FOREST";
         }
 
         if (y > WATER_BOTTOM) {
-            return "LE SUD DE LA MAP";
+            return "SOUTHERN MAP";
         }
 
-        return "LE BOCAGE";
+        return "HEDGEROWS";
     }
 }

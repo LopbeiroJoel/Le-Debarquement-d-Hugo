@@ -5,7 +5,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
-import hugo.map.CarteJeu;
+
+import hugo.map.GameMap;
 import hugo.mob.Mob;
 import hugo.mob.MobLvl1;
 import hugo.mob.MobLvl2;
@@ -24,13 +25,13 @@ public class MobSpawner implements Disposable {
     private static final float SPAWN_DISTANCE = 750f;
     private static final float MIN_MOB_DISTANCE = 40f;
 
-    // mobs par vague
+    // mobs per wave
     private static final int[][] WAVE_COUNTS = {
-        {5, 0,  0,  0, 0},
-        {5, 8,  0,  0, 0},
-        {5, 5, 10,  0, 0},
-        {5, 5,  5, 10, 0},
-        {4, 5,  8, 12, 1}
+        {5, 0, 0, 0, 0},
+        {5, 8, 0, 0, 0},
+        {5, 5, 10, 0, 0},
+        {5, 5, 5, 10, 0},
+        {4, 5, 8, 12, 1}
     };
 
     private final List<Mob> mobs = new ArrayList<>();
@@ -42,7 +43,7 @@ public class MobSpawner implements Disposable {
         return mobs;
     }
 
-    // espace entre les mobs
+    // space between mobs
     public boolean hasRoom(Mob movingMob, float nextX, float nextY) {
         for (Mob other : mobs) {
             if (other == movingMob || other.getLife().isDead()) {
@@ -69,8 +70,8 @@ public class MobSpawner implements Disposable {
         return true;
     }
 
-    // spawn de la vague
-    public void spawnWave(WaveManager waveManager, CarteJeu map, float hugoX, float hugoY) {
+    // spawn the wave
+    public void spawnWave(WaveManager waveManager, GameMap map, float hugoX, float hugoY) {
         int[] counts = WAVE_COUNTS[waveManager.getWave() - 1];
 
         int total = 0;
@@ -104,8 +105,8 @@ public class MobSpawner implements Disposable {
         System.out.println("Wave " + waveManager.getWave() + ": " + mobIndex + " mobs spawned");
     }
 
-    // trouve où spawn
-    private Vector2 findSpawnPosition(CarteJeu map, float x, float y, double angle, float distance) {
+    // find a spawn position
+    private Vector2 findSpawnPosition(GameMap map, float x, float y, double angle, float distance) {
         Vector2 bestPosition = new Vector2(x, y);
         float bestScore = -1f;
 
@@ -130,37 +131,46 @@ public class MobSpawner implements Disposable {
         return bestPosition;
     }
 
-    // choix du mob
+    // select the mob type
     private Mob createMob(int level, float x, float y) {
         return switch (level) {
-            case 2 -> new MobLvl2(
-                texture("german-shepherd-walk.png"),
-                texture("german-shepherd-bite.png"), x, y
-            );
-            case 3 -> new MobLvl3(
-                texture("machete-walk.png"),
-                texture("machete-attack.png"), x, y
-            );
-            case 4 -> new MobLvl4(
-                texture("veteran-walk.png"),
-                texture("veteran-fire.png"), x, y
-            );
-            case 5 -> new MobLvl5(
-                texture("boss-walk.png"),
-                texture("boss-fire.png"),
-                texture("boss-knife.png"), x, y
-            );
-            default -> new MobLvl1(texture("soldier-level-1.png"), x, y);
+            case 2 ->
+                    new MobLvl2(
+                            texture("mobs/german-shepherd-walk.png"),
+                            texture("mobs/german-shepherd-bite.png"),
+                            x,
+                            y);
+            case 3 ->
+                    new MobLvl3(
+                            texture("mobs/machete-walk.png"),
+                            texture("mobs/machete-attack.png"),
+                            x,
+                            y);
+            case 4 ->
+                    new MobLvl4(
+                            texture("mobs/veteran-walk.png"),
+                            texture("mobs/veteran-fire.png"),
+                            x,
+                            y);
+            case 5 ->
+                    new MobLvl5(
+                            texture("mobs/boss-walk.png"),
+                            texture("mobs/boss-fire.png"),
+                            texture("mobs/boss-knife.png"),
+                            x,
+                            y);
+            default -> new MobLvl1(texture("mobs/soldier-level-1.png"), x, y);
         };
     }
 
-    // parachute tue le mob
+    // parachute kill
     public void defeat(Mob mob) {
         mob.takeDamage(mob.getLife().getCurrentLife());
         hasDefeatedMobs = true;
     }
 
-    public void updateWave(WaveManager waveManager, float delta, CarteJeu map, float hugoX, float hugoY) {
+    public void updateWave(
+            WaveManager waveManager, float delta, GameMap map, float hugoX, float hugoY) {
         if (hasDefeatedMobs) {
             mobs.removeIf(mob -> mob.getLife().isDead());
             hasDefeatedMobs = false;
@@ -171,18 +181,23 @@ public class MobSpawner implements Disposable {
         }
     }
 
-    // balle en cuivre
+    // copper bullet
     private TextureRegion getProjectileSprite() {
         if (projectileSprite == null) {
-            Texture texture = textures.computeIfAbsent("projectiles/balle-hugo-cuivre.png", this::loadTexture);
+            Texture texture = texture("projectiles/balle-hugo-cuivre.png");
             projectileSprite = new TextureRegion(texture);
             projectileSprite.flip(false, true);
         }
         return projectileSprite;
     }
 
-    private Texture texture(String name) {
-        return textures.computeIfAbsent("mobs/" + name, this::loadTexture);
+    private Texture texture(String path) {
+        Texture texture = textures.get(path);
+        if (texture == null) {
+            texture = loadTexture(path);
+            textures.put(path, texture);
+        }
+        return texture;
     }
 
     private Texture loadTexture(String path) {

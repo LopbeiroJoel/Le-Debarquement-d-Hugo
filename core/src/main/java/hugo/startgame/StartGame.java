@@ -14,14 +14,15 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.video.VideoPlayer;
 import com.badlogic.gdx.video.VideoPlayerCreator;
-import hugo.JeuHugo;
-import hugo.map.EcranCarte;
+
+import hugo.HugoGame;
+import hugo.map.MapScreen;
 
 import java.io.FileNotFoundException;
 
 public final class StartGame extends ScreenAdapter {
     private static final String ASSET_FOLDER = "Start Game/";
-    private final JeuHugo game;
+    private final HugoGame game;
     private final FitViewport viewport = new FitViewport(1280, 720);
     private final Rectangle startButton = new Rectangle(520, 100, 240, 65);
     private final Vector2 pointer = new Vector2();
@@ -33,7 +34,7 @@ public final class StartGame extends ScreenAdapter {
     private VideoPlayer video;
     private volatile boolean introFinished;
 
-    public StartGame(JeuHugo game) {
+    public StartGame(HugoGame game) {
         this.game = game;
     }
 
@@ -85,13 +86,23 @@ public final class StartGame extends ScreenAdapter {
         if (frame != null) {
             batch.setProjectionMatrix(viewport.getCamera().combined);
             batch.begin();
-            batch.draw(frame, 0, 0, 1280, 720, 0, 0,
-                video.getVideoWidth(), video.getVideoHeight(), false, false);
+            batch.draw(
+                    frame,
+                    0,
+                    0,
+                    1280,
+                    720,
+                    0,
+                    0,
+                    video.getVideoWidth(),
+                    video.getVideoHeight(),
+                    false,
+                    false);
             batch.end();
         }
     }
 
-    // menu de départ
+    // start menu
     private void drawMenu() {
         ScreenUtils.clear(0.08f, 0.10f, 0.08f, 1);
         viewport.apply();
@@ -100,7 +111,7 @@ public final class StartGame extends ScreenAdapter {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
                 || (hovered && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT))) {
-            game.setScreen(new EcranCarte(false));
+            game.setScreen(new MapScreen(false));
             dispose();
             return;
         }
@@ -118,8 +129,11 @@ public final class StartGame extends ScreenAdapter {
         batch.draw(pixel, startButton.x, startButton.y, startButton.width, startButton.height);
         batch.setColor(1, 1, 1, 1);
         label.setText(font, "Start");
-        font.draw(batch, label, startButton.x + (startButton.width - label.width) / 2f,
-            startButton.y + (startButton.height + label.height) / 2f);
+        font.draw(
+                batch,
+                label,
+                startButton.x + (startButton.width - label.width) / 2f,
+                startButton.y + (startButton.height + label.height) / 2f);
         batch.end();
     }
 

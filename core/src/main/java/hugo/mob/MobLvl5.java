@@ -3,6 +3,7 @@ package hugo.mob;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
 import hugo.entity.Creature;
 import hugo.entity.Projectile;
 
@@ -18,7 +19,7 @@ public class MobLvl5 extends AnimatedMob {
         knife = readAnimation(slash, 0.12f);
     }
 
-    // boss tire ou tape
+    // boss shoots or stabs
     public void attackTarget(Creature target, TextureRegion bullet, List<Projectile> projectiles) {
         if (!startMeleeAttack(target) && shootAt(target, bullet, projectiles, 380f)) {
             playShot();

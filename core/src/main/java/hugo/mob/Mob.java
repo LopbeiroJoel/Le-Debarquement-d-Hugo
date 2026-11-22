@@ -1,7 +1,5 @@
 package hugo.mob;
 
-import java.util.List;
-
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
@@ -11,8 +9,10 @@ import com.badlogic.gdx.math.Vector2;
 import hugo.entity.Creature;
 import hugo.entity.Player;
 import hugo.entity.Projectile;
-import hugo.map.CarteJeu;
+import hugo.map.GameMap;
 import hugo.mob.spawn.MobSpawner;
+
+import java.util.List;
 
 public abstract class Mob extends Creature {
 
@@ -23,23 +23,56 @@ public abstract class Mob extends Creature {
     private int xpReward;
     private TextureRegion projectileSprite;
 
-    public Mob(Texture texture, float x, float y, int health, int speed,
-               int width, int height, int hitboxSize) {
+    public Mob(
+            Texture texture,
+            float x,
+            float y,
+            int health,
+            int speed,
+            int width,
+            int height,
+            int hitboxSize) {
         this(texture, x, y, health, speed, width, height, hitboxSize, 5f);
     }
 
-    protected Mob(Texture texture, float x, float y, int health, int speed,
-                  int width, int height, int hitboxSize, float damage) {
-        super(new TextureRegion(texture), x, y, health, speed, width, height, 0, damage, hitboxSize);
+    protected Mob(
+            Texture texture,
+            float x,
+            float y,
+            int health,
+            int speed,
+            int width,
+            int height,
+            int hitboxSize,
+            float damage) {
+        super(
+                new TextureRegion(texture),
+                x,
+                y,
+                health,
+                speed,
+                width,
+                height,
+                0,
+                damage,
+                hitboxSize);
     }
 
-    public Mob(Texture texture, float x, float y, int health, int speed,
-               int width, int height, int hitboxSize, int attackInterval) {
+    public Mob(
+            Texture texture,
+            float x,
+            float y,
+            int health,
+            int speed,
+            int width,
+            int height,
+            int hitboxSize,
+            int attackInterval) {
         this(texture, x, y, health, speed, width, height, hitboxSize);
         this.attackInterval = Math.max(0, attackInterval);
     }
 
-    public void updateAgainst(Creature target, CarteJeu map, float deltaTime, MobSpawner spawner) {
+    public void updateAgainst(Creature target, GameMap map, float deltaTime, MobSpawner spawner) {
         if (target instanceof Player player && player.hasParachuteStrike()) {
             if (!getLife().isDead()) {
                 player.registerKill(getXpReward());
@@ -55,8 +88,8 @@ public abstract class Mob extends Creature {
         update(deltaTime);
     }
 
-    // mob contourne les obstacles
-    private void chooseMovement(CarteJeu map, float deltaTime, MobSpawner spawner) {
+    // mob avoids obstacles
+    private void chooseMovement(GameMap map, float deltaTime, MobSpawner spawner) {
         if (dirX == 0 && dirY == 0) {
             return;
         }
@@ -74,7 +107,7 @@ public abstract class Mob extends Creature {
         setDirection(0, 0);
     }
 
-    // mob suit hugo
+    // mob follows hugo
     public void follow(Rectangle hugoHitbox) {
         if (hugoHitbox == null || life.isDead()) {
             setDirection(0, 0);
@@ -88,8 +121,13 @@ public abstract class Mob extends Creature {
             return;
         }
 
-        float distanceX = (hugoHitbox.x + hugoHitbox.width / 2f) - (mobHitbox.x + mobHitbox.width / 2f);
-        float distanceY = (hugoHitbox.y + hugoHitbox.height / 2f) - (mobHitbox.y + mobHitbox.height / 2f);
+        float mobCenterX = mobHitbox.x + mobHitbox.width / 2f;
+        float mobCenterY = mobHitbox.y + mobHitbox.height / 2f;
+        float hugoCenterX = hugoHitbox.x + hugoHitbox.width / 2f;
+        float hugoCenterY = hugoHitbox.y + hugoHitbox.height / 2f;
+
+        float distanceX = hugoCenterX - mobCenterX;
+        float distanceY = hugoCenterY - mobCenterY;
         float distance = (float) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
         if (distance == 0) {
@@ -114,7 +152,7 @@ public abstract class Mob extends Creature {
         attackCooldown = Math.max(0, attackCooldown - deltaTime);
     }
 
-    // mob tape
+    // mob hits
     public boolean attack(Creature target) {
         if (target == null || target.getLife().isDead() || !startMeleeAttack(target)) {
             return false;
@@ -138,8 +176,9 @@ public abstract class Mob extends Creature {
         return true;
     }
 
-    // mob tire
-    protected boolean shootAt(Creature target, TextureRegion bullet, List<Projectile> projectiles, float range) {
+    // mob shoots
+    protected boolean shootAt(
+            Creature target, TextureRegion bullet, List<Projectile> projectiles, float range) {
         if (!canAttack(target)) {
             return false;
         }
@@ -148,7 +187,9 @@ public abstract class Mob extends Creature {
         float dx = target.getX() - x;
         float dy = target.getCenterY() - startY;
         float distance = (float) Math.hypot(dx, dy);
-        if (distance == 0 || distance > range || map.blocksShot(x, startY, target.getX(), target.getCenterY())) {
+        if (distance == 0
+                || distance > range
+                || map.blocksShot(x, startY, target.getX(), target.getCenterY())) {
             return false;
         }
 
@@ -162,8 +203,21 @@ public abstract class Mob extends Creature {
             spriteHeight = 9f;
             rotation = MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees;
         }
-        Projectile projectile = new Projectile(sprite, x, startY, dx / distance, dy / distance,
-            360f, 0f, range, 8f, 8f, spriteWidth, spriteHeight, rotation);
+        Projectile projectile =
+                new Projectile(
+                        sprite,
+                        x,
+                        startY,
+                        dx / distance,
+                        dy / distance,
+                        360f,
+                        0f,
+                        range,
+                        8f,
+                        8f,
+                        spriteWidth,
+                        spriteHeight,
+                        rotation);
         projectile.setMap(map);
         projectiles.add(projectile);
         attackCooldown = attackInterval;
@@ -174,8 +228,7 @@ public abstract class Mob extends Creature {
         return target != null && target != this && !life.isDead() && attackCooldown <= 0;
     }
 
-    protected void onAttack() {
-    }
+    protected void onAttack() {}
 
     public void setProjectileSprite(TextureRegion projectileSprite) {
         this.projectileSprite = projectileSprite;

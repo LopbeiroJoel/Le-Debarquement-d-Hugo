@@ -1,0 +1,312 @@
+@startuml diagram-1
+title Lancement, carte et affichage
+skinparam classAttributeIconSize 0
+class DesktopLauncher {
+  +main(args)
+}
+class StartupHelper {
+  +startNewJvmIfRequired()
+}
+class HugoGame {
+  +create()
+  +dispose()
+}
+class StartGame {
+  +show()
+  +render(delta)
+}
+class MapScreen {
+  +show()
+  +render(delta)
+  +dispose()
+}
+class GameMap {
+  +move(x, y, dx, dy)
+  +canMove(position)
+  +blocksShot(startX, startY, endX, endY)
+  +updateChests(delta)
+}
+class MapCamera {
+  +follow(targetX, targetY, screenWidth, screenHeight, worldWidth, worldHeight)
+}
+class MapRenderer {
+  +draw(batch, camera, player, enemies)
+  +drawCollisions(camera)
+}
+class DecorSprites {
+  +get(type)
+  +shadow(type)
+  +dispose()
+}
+class DecorObject {
+  +checkChestTrigger(nearby)
+  +updateChest(delta)
+  +reset()
+}
+enum DecorType {
+}
+class MapArea {
+  +contains(x, y)
+  +intersects(box)
+}
+class GameOverMenu {
+  +open(level, wave, kills)
+  +update(screenWidth, screenHeight)
+}
+class XpBar {
+  +draw(batch, pixel, font, player, screenHeight)
+}
+class HugoHealthBar {
+  +draw(batch, pixel, life, centerX, y)
+}
+DesktopLauncher ..> StartupHelper : checks JVM
+DesktopLauncher ..> HugoGame : starts
+HugoGame --> StartGame : first screen
+StartGame ..> MapScreen : starts game
+MapScreen *-- GameMap : map
+MapScreen *-- MapCamera : camera
+MapScreen *-- MapRenderer : renderer
+MapScreen *-- XpBar : XP display
+MapScreen *-- GameOverMenu : retry menu
+MapRenderer --> GameMap : reads map
+MapRenderer *-- DecorSprites : sprite cache
+GameMap *-- DecorObject : objects
+GameMap *-- MapArea : areas
+DecorObject --> DecorType : type
+DecorSprites ..> DecorType : loads sprites
+Player ..> HugoHealthBar : draws health
+HugoGame --|> Game : libGDX
+StartGame --|> ScreenAdapter : libGDX
+MapScreen --|> ScreenAdapter : libGDX
+@enduml
+
+@startuml diagram-2
+title Personnage, statistiques et armes
+skinparam classAttributeIconSize 0
+interface Entity {
+  +update(deltaTime)
+  +draw(batch)
+}
+abstract class Creature {
+  +getHitbox()
+  +setMap(map)
+  +update(deltaTime)
+  +takeDamage(damage)
+}
+class Player {
+  +shoot(bulletSprite, target)
+  +equipWeapon(weapon)
+  +addXp(amount)
+  +registerKill(xp)
+}
+class Life {
+  +takeDamage(amount)
+  +heal(amount)
+  +isDead()
+}
+class Stat {
+  +getValue()
+  +addBonus(value)
+  +addMultiplier(factor)
+  +removeMultiplier(factor)
+}
+class Projectile {
+  +update(deltaTime)
+  +getHitbox()
+  +destroy()
+}
+abstract class Weapon {
+  +fire(sprite, x, y, targetX, targetY, damage, range)
+}
+class SingleShotWeapon {
+  +fire(sprite, x, y, targetX, targetY, damage, range)
+}
+class ShotgunWeapon {
+  +fire(sprite, x, y, targetX, targetY, damage, range)
+}
+class Weapons {
+  +carbine()
+  +submachineGun()
+  +machineGun()
+  +shotgun()
+}
+class WeaponSprites {
+  +dispose()
+}
+Creature ..|> Entity : implements
+Projectile ..|> Entity : implements
+Player --|> Creature : inherits
+Creature *-- Life : health
+Creature *-- Stat : speed, range, damage
+Player *-- Stat : fire delay and critical stats
+Creature --> GameMap : map collisions
+Projectile --> GameMap : shot collisions
+Player --> Weapon : equipped weapon
+Player *-- WeaponSprites : held weapon animation
+SingleShotWeapon --|> Weapon : inherits
+ShotgunWeapon --|> Weapon : inherits
+Weapons ..> SingleShotWeapon : creates
+Weapons ..> ShotgunWeapon : creates
+Weapon ..> Projectile : returns shots
+Player ..> Weapons : starting carbine
+MapScreen *-- Player : Hugo
+MapScreen *-- Projectile : player and enemy shots
+@enduml
+
+@startuml diagram-3
+title Mobs, vagues et cycles
+skinparam classAttributeIconSize 0
+abstract class Mob {
+  +follow(hugoHitbox)
+  +updateAgainst(target, map, deltaTime, spawner)
+  +attack(target)
+  +attackTarget(target, bullet, projectiles)
+}
+abstract class AnimatedMob {
+  +update(deltaTime)
+  +draw(batch)
+}
+class MobLvl1 {
+}
+class MobLvl2 {
+}
+class MobLvl3 {
+}
+class MobLvl4 {
+}
+class MobLvl5 {
+}
+class MobSpawner {
+  +spawnWave(waveManager, map, hugoX, hugoY)
+  +updateWave(waveManager, delta, map, hugoX, hugoY)
+  +hasRoom(movingMob, nextX, nextY)
+}
+class WaveManager {
+  +update(delta)
+  +getWave()
+  +getCycle()
+  +getDamageMultiplier()
+}
+class MobXp {
+  +rewardFor(level, cycle)
+}
+class Admin {
+  +killAllMobs(spawner)
+}
+Mob --|> Creature : inherits
+MobLvl1 --|> Mob : inherits
+MobLvl2 --|> Mob : inherits
+AnimatedMob --|> Mob : shared animation
+MobLvl3 --|> AnimatedMob : machete
+MobLvl4 --|> AnimatedMob : rifle
+MobLvl5 --|> AnimatedMob : boss
+MobSpawner *-- Mob : active mobs
+MobSpawner ..> WaveManager : wave and cycle
+MobSpawner ..> MobXp : XP rewards
+Mob ..> MobSpawner : spacing
+Mob ..> GameMap : movement and sight
+Mob ..> Creature : target
+Mob ..> Projectile : enemy shots
+Admin ..> MobSpawner : clear mobs
+MapScreen *-- MobSpawner : spawns and updates
+MapScreen *-- WaveManager : timer
+@enduml
+
+@startuml diagram-4
+title Coffres et bonus temporaires
+skinparam classAttributeIconSize 0
+class ChestBonusMenu {
+  +open()
+  +update(player, width, height)
+}
+class FullHealBonus {
+  +apply(player)
+}
+class MateBonus {
+  +activate(player)
+  +update(player, delta)
+}
+class TobaccoBonus {
+  +activate(player)
+  +update(player, delta)
+}
+class HelmetBonus {
+  +activate()
+  +isActive()
+  +update(delta)
+}
+class WhiskyBonus {
+  +activate()
+  +update(delta)
+}
+class EasterEggGoku {
+  +toggle(player, pixel)
+  +update(delta, moving)
+}
+class BonusAnimation {
+  +play()
+  +isPlaying()
+  +update(delta)
+}
+class ParachuteAnimation {
+  +play()
+  +update(delta)
+}
+MapScreen *-- ChestBonusMenu : chest reward menu
+ChestBonusMenu *-- FullHealBonus : heals
+ChestBonusMenu ..> Player : selected bonus
+FullHealBonus ..> Player : restores life
+Player *-- MateBonus : speed and fire delay
+Player *-- TobaccoBonus : damage and fire delay
+Player *-- HelmetBonus : invincibility
+Player *-- WhiskyBonus : drunk timer
+Player *-- EasterEggGoku : F9 mode
+Player *-- BonusAnimation : item animations
+Player *-- ParachuteAnimation : airdrop animation
+MateBonus ..> Stat : temporary multipliers
+TobaccoBonus ..> Stat : temporary multipliers
+TobaccoBonus ..> Life : health cost
+@enduml
+
+@startuml diagram-5
+title XP et améliorations permanentes
+skinparam classAttributeIconSize 0
+abstract class Upgrade {
+  +apply(player)
+  +isAvailableFor(player)
+  +getWeight()
+}
+class StatUpgrade {
+  +apply(player)
+}
+class FlatStatUpgrade {
+  +apply(player)
+}
+class MaxLifeUpgrade {
+  +apply(player)
+}
+class WeaponUpgrade {
+  +apply(player)
+  +isAvailableFor(player)
+}
+class UpgradeMenu {
+  +open(player)
+  +update(player, screenWidth, screenHeight)
+}
+class UpgradePool {
+  +pickRandom(count, player)
+}
+StatUpgrade --|> Upgrade : multiplier
+FlatStatUpgrade --|> Upgrade : flat bonus
+MaxLifeUpgrade --|> Upgrade : maximum health
+WeaponUpgrade --|> Upgrade : new weapon
+UpgradeMenu *-- UpgradePool : draw pool
+UpgradePool *-- Upgrade : available cards
+UpgradeMenu --> Upgrade : current choices
+Upgrade ..> Player : applies to player
+StatUpgrade ..> Stat : adds multiplier
+FlatStatUpgrade ..> Stat : adds bonus
+MaxLifeUpgrade ..> Life : raises maximum
+WeaponUpgrade ..> Weapon : equips
+MapScreen *-- UpgradeMenu : level reward menu
+@enduml

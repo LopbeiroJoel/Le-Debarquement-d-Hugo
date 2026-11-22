@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+
 import hugo.bonus.FullHealBonus;
 import hugo.entity.Player;
 
@@ -25,14 +26,14 @@ public final class ChestBonusMenu {
     private final EnumMap<Bonus, Texture> icons = new EnumMap<>(Bonus.class);
     private boolean open;
 
-    // cartes bonus
+    // bonus cards
     private enum Bonus {
-        TOBACCO("Tabac", "Cigarette", "tobacco.png"),
-        FULL_HEAL("Soin complet", "", "heart.png"),
-        MATE("Maté", "", "mate.png"),
-        HELMET("Casque", "Invincible 30 s", "helmet.png"),
-        PARACHUTE("Parachute", "Elimine tous les mobs", "parachute.png"),
-        WHISKY("Whisky", "Teinte variable 30 s", "whisky.png");
+        TOBACCO("Tobacco", "Cigarette", "tobacco.png"),
+        FULL_HEAL("Full heal", "", "heart.png"),
+        MATE("Mate", "", "mate.png"),
+        HELMET("Helmet", "Invincible for 30 s", "helmet.png"),
+        PARACHUTE("Parachute", "Defeat all mobs", "parachute.png"),
+        WHISKY("Whisky", "Drunk effect for 30 s", "whisky.png");
 
         final String title;
         final String description;
@@ -51,7 +52,7 @@ public final class ChestBonusMenu {
         return open;
     }
 
-    // tire trois bonus
+    // pick three bonuses
     public void open() {
         if (open) {
             return;
@@ -67,7 +68,7 @@ public final class ChestBonusMenu {
         open = false;
     }
 
-    // clic sur une carte
+    // click a card
     public void update(Player player, int width, int height) {
         if (!open) {
             return;
@@ -100,7 +101,7 @@ public final class ChestBonusMenu {
         }
     }
 
-    // active le bonus
+    // apply bonus
     private void applyBonus(Bonus bonus, Player player) {
         switch (bonus) {
             case TOBACCO -> player.useTobacco();
@@ -115,7 +116,7 @@ public final class ChestBonusMenu {
         }
     }
 
-    // menu du coffre
+    // chest menu
     public void draw(SpriteBatch batch, Texture pixel, BitmapFont font, int width, int height) {
         if (!open) {
             return;
@@ -124,7 +125,7 @@ public final class ChestBonusMenu {
         batch.setColor(0, 0, 0, 0.62f);
         batch.draw(pixel, 0, 0, width, height);
         font.setColor(Color.WHITE);
-        drawCentered(batch, font, "Coffre HUGO", width / 2f, height * 0.72f);
+        drawCentered(batch, font, "HUGO chest", width / 2f, height * 0.72f);
 
         for (int i = 0; i < choices.size(); i++) {
             Rectangle card = getCardBounds(i, width, height);
@@ -142,7 +143,12 @@ public final class ChestBonusMenu {
 
             float iconSize = Math.min(card.width * 0.70f, card.height * 0.54f);
             batch.setColor(Color.WHITE);
-            batch.draw(icon, centerX - iconSize / 2f, card.y + card.height * 0.40f, iconSize, iconSize);
+            batch.draw(
+                    icon,
+                    centerX - iconSize / 2f,
+                    card.y + card.height * 0.40f,
+                    iconSize,
+                    iconSize);
             drawCentered(batch, font, bonus.title, centerX, card.y + card.height * 0.33f);
             if (!bonus.description.isEmpty()) {
                 drawCentered(batch, font, bonus.description, centerX, card.y + card.height * 0.17f);
@@ -153,7 +159,7 @@ public final class ChestBonusMenu {
         batch.setColor(0.36f, 0.39f, 0.22f, 1);
         batch.draw(pixel, closeButton.x, closeButton.y, closeButton.width, closeButton.height);
         batch.setColor(Color.WHITE);
-        drawCentered(batch, font, "Continuer", width / 2f, closeButton.y + 27);
+        drawCentered(batch, font, "Continue", width / 2f, closeButton.y + 27);
     }
 
     public void dispose() {
@@ -176,7 +182,8 @@ public final class ChestBonusMenu {
         closeButton.set(width / 2f - 65, height * 0.20f, 130, 42);
     }
 
-    private void drawCentered(SpriteBatch batch, BitmapFont font, String text, float centerX, float y) {
+    private void drawCentered(
+            SpriteBatch batch, BitmapFont font, String text, float centerX, float y) {
         label.setText(font, text);
         font.draw(batch, label, centerX - label.width / 2f, y);
     }

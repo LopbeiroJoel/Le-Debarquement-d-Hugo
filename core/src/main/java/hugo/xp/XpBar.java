@@ -1,14 +1,16 @@
-package hugo.Hugo_XP;
+package hugo.xp;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 import hugo.entity.Player;
 
 public final class XpBar {
-    // barre xp hugo
-    public void draw(SpriteBatch batch, Texture pixel, BitmapFont font, Player player, int screenHeight) {
+    // hugo xp bar
+    public void draw(
+            SpriteBatch batch, Texture pixel, BitmapFont font, Player player, int screenHeight) {
         float xp = player.getXp();
         float target = player.getXpToNextLevel();
         float progress = xp / target;
@@ -26,7 +28,16 @@ public final class XpBar {
         batch.setColor(Color.WHITE);
 
         font.setColor(Color.WHITE);
-        font.draw(batch, "Niveau " + player.getLevel() + "   " + Math.round(xp)
-            + " / " + Math.round(target) + " XP", x, y + 30f);
+        font.draw(
+                batch,
+                "Niveau "
+                        + player.getLevel()
+                        + "   "
+                        + Math.round(xp)
+                        + " / "
+                        + Math.round(target)
+                        + " XP",
+                x,
+                y + 30f);
     }
 }

@@ -1,12 +1,12 @@
 package hugo.upgrade;
 
+import hugo.entity.Player;
+import hugo.weapon.Weapons;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Predicate;
-
-import hugo.entity.Player;
-import hugo.weapon.Weapons;
 
 public class UpgradePool {
 
@@ -14,26 +14,38 @@ public class UpgradePool {
     private final Random random = new Random();
 
     public UpgradePool() {
-        upgrades.add(new StatUpgrade("+10 % de vitesse", "speed", player -> player.getSpeed(), 1.1f));
-        upgrades.add(new StatUpgrade("+20 % de dégâts", "damage", player -> player.getAttackDamage(), 1.2f));
-        upgrades.add(new StatUpgrade("+10 % de portée", "range", player -> player.getAttackRange(), 1.1f));
-        upgrades.add(new StatUpgrade("+10 % de dégâts critiques", "crit-damage", player -> player.getCritMultiplier(), 1.1f));
-        upgrades.add(new FlatStatUpgrade("+10 % de chance de critique", "crit-chance", player -> player.getCritChance(), 0.1f));
-        upgrades.add(new StatUpgrade("-10 % de délai de tir", "fire-rate", player -> player.getFireDelay(), 0.9f));
-        upgrades.add(new MaxLifeUpgrade("+20 % de vie maximum", "max-life", 1.2f));
-        upgrades.add(new WeaponUpgrade("Pistolet-mitrailleur", "submachine-gun", () -> Weapons.submachineGun(), 0.7f));
-        upgrades.add(new WeaponUpgrade("Mitrailleuse", "machine-gun", () -> Weapons.machineGun(), 0.3f));
-        upgrades.add(new WeaponUpgrade("Fusil à pompe", "shotgun", () -> Weapons.shotgun(), 0.7f));
-
+        upgrades.add(new StatUpgrade("+10% speed", "speed", player -> player.getSpeed(), 1.1f));
+        upgrades.add(
+                new StatUpgrade("+20% damage", "damage", player -> player.getAttackDamage(), 1.2f));
+        upgrades.add(
+                new StatUpgrade("+10% range", "range", player -> player.getAttackRange(), 1.1f));
+        upgrades.add(
+                new StatUpgrade(
+                        "+10% critical damage",
+                        "crit-damage", player -> player.getCritMultiplier(), 1.1f));
+        upgrades.add(
+                new FlatStatUpgrade(
+                        "+10% critical chance",
+                        "crit-chance", player -> player.getCritChance(), 0.1f));
+        upgrades.add(
+                new StatUpgrade(
+                        "-10% fire delay", "fire-rate", player -> player.getFireDelay(), 0.9f));
+        upgrades.add(new MaxLifeUpgrade("+20% maximum health", "max-life", 1.2f));
+        upgrades.add(
+                new WeaponUpgrade(
+                        "Submachine gun", "submachine-gun", () -> Weapons.submachineGun(), 0.7f));
+        upgrades.add(
+                new WeaponUpgrade("Machine gun", "machine-gun", () -> Weapons.machineGun(), 0.3f));
+        upgrades.add(new WeaponUpgrade("Shotgun", "shotgun", () -> Weapons.shotgun(), 0.7f));
     }
 
     public List<Upgrade> pickRandom(int count, Player player) {
         return pickRandom(upgrades, count, u -> u.isAvailableFor(player), random);
     }
 
-    public static List<Upgrade> pickRandom(List<Upgrade> cards, int count,
-            Predicate<Upgrade> available, Random rng) {
-        // 1. le paquet : seulement les cartes disponibles et de poids positif
+    public static List<Upgrade> pickRandom(
+            List<Upgrade> cards, int count, Predicate<Upgrade> available, Random rng) {
+        // available cards with positive weight
         List<Upgrade> deck = new ArrayList<>();
         for (Upgrade u : cards) {
             if (available.test(u) && u.getWeight() > 0) {
@@ -41,7 +53,7 @@ public class UpgradePool {
             }
         }
 
-        // 2. on tire une carte à la fois, jusqu'à en avoir "count" ou que le paquet soit vide
+        // draw cards until the selection is full or the deck is empty
         List<Upgrade> picked = new ArrayList<>();
         while (picked.size() < count && !deck.isEmpty()) {
             float total = 0;
@@ -49,7 +61,7 @@ public class UpgradePool {
                 total += u.getWeight();
             }
 
-            float ball = rng.nextFloat() * total;   // la bille sur la règle
+            float ball = rng.nextFloat() * total; // random point along the total weight
             Upgrade chosen = deck.get(deck.size() - 1);
             for (Upgrade u : deck) {
                 if (ball < u.getWeight()) {
@@ -60,7 +72,7 @@ public class UpgradePool {
             }
 
             picked.add(chosen);
-            deck.remove(chosen);   // la carte tirée sort du paquet
+            deck.remove(chosen); // remove the chosen card from the deck
         }
         return picked;
     }

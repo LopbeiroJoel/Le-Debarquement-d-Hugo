@@ -4,8 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 
-import hugo.map.CarteJeu;
-
+import hugo.map.GameMap;
 
 public class Projectile implements Entity {
 
@@ -21,14 +20,35 @@ public class Projectile implements Entity {
     private float traveled;
     private boolean active;
     private final Rectangle hitbox = new Rectangle();
-    private CarteJeu map;
+    private GameMap map;
 
-    public Projectile(TextureRegion sprite, float x, float y, float dirX, float dirY, float speed, float damage, float maxRange, float width, float height) {
+    public Projectile(
+            TextureRegion sprite,
+            float x,
+            float y,
+            float dirX,
+            float dirY,
+            float speed,
+            float damage,
+            float maxRange,
+            float width,
+            float height) {
         this(sprite, x, y, dirX, dirY, speed, damage, maxRange, width, height, width, height, 0f);
     }
 
-    public Projectile(TextureRegion sprite, float x, float y, float dirX, float dirY, float speed,
-            float damage, float maxRange, float width, float height, float spriteWidth, float spriteHeight,
+    public Projectile(
+            TextureRegion sprite,
+            float x,
+            float y,
+            float dirX,
+            float dirY,
+            float speed,
+            float damage,
+            float maxRange,
+            float width,
+            float height,
+            float spriteWidth,
+            float spriteHeight,
             float rotation) {
         this.sprite = sprite;
         this.x = x;
@@ -47,7 +67,7 @@ public class Projectile implements Entity {
         this.active = true;
     }
 
-    public void setMap(CarteJeu map) {
+    public void setMap(GameMap map) {
         this.map = map;
     }
 
@@ -84,8 +104,17 @@ public class Projectile implements Entity {
         }
         float halfWidth = spriteWidth / 2f;
         float halfHeight = spriteHeight / 2f;
-        batch.draw(sprite, x - halfWidth, y - halfHeight, halfWidth, halfHeight,
-            spriteWidth, spriteHeight, 1f, 1f, rotation);
+        batch.draw(
+                sprite,
+                x - halfWidth,
+                y - halfHeight,
+                halfWidth,
+                halfHeight,
+                spriteWidth,
+                spriteHeight,
+                1f,
+                1f,
+                rotation);
     }
 
     public Rectangle getHitbox() {
@@ -115,5 +144,4 @@ public class Projectile implements Entity {
     public void destroy() {
         active = false;
     }
-
 }

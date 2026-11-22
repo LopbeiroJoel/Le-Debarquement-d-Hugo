@@ -1,7 +1,5 @@
 package hugo.entity;
 
-import java.util.List;
-
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -17,9 +15,11 @@ import hugo.bonus.TobaccoBonus;
 import hugo.bonus.WhiskyBonus;
 import hugo.bonus.animation.BonusAnimation;
 import hugo.bonus.animation.ParachuteAnimation;
+import hugo.ui.HugoHealthBar;
 import hugo.weapon.Weapon;
 import hugo.weapon.Weapons;
-import hugo.ui.HugoHealthBar;
+
+import java.util.List;
 
 public class Player extends Creature {
 
@@ -45,12 +45,17 @@ public class Player extends Creature {
     private final WhiskyBonus whiskyBonus = new WhiskyBonus();
     private final Matrix4 normalTransform = new Matrix4();
     private final Matrix4 whiskyTransform = new Matrix4();
-    private final BonusAnimation fullHealAnimation = new BonusAnimation("bonus/animation/hugo-full-heal.png", 0.16f);
-    private final BonusAnimation mateAnimation = new BonusAnimation("bonus/animation/hugo-drinks-mate.png", 0.5f);
-    private final BonusAnimation tobaccoAnimation = new BonusAnimation("bonus/animation/hugo-smokes.png", 0.45f);
-    private final BonusAnimation helmetAnimation = new BonusAnimation("bonus/animation/hugo-equips-helmet.png", 0.20f);
+    private final BonusAnimation fullHealAnimation =
+            new BonusAnimation("bonus/animation/hugo-full-heal.png", 0.16f);
+    private final BonusAnimation mateAnimation =
+            new BonusAnimation("bonus/animation/hugo-drinks-mate.png", 0.5f);
+    private final BonusAnimation tobaccoAnimation =
+            new BonusAnimation("bonus/animation/hugo-smokes.png", 0.45f);
+    private final BonusAnimation helmetAnimation =
+            new BonusAnimation("bonus/animation/hugo-equips-helmet.png", 0.20f);
     private final ParachuteAnimation parachuteAnimation = new ParachuteAnimation();
-    private final BonusAnimation whiskyAnimation = new BonusAnimation("bonus/animation/hugo-drinks-whisky.png", 0.36f);
+    private final BonusAnimation whiskyAnimation =
+            new BonusAnimation("bonus/animation/hugo-drinks-whisky.png", 0.36f);
     private boolean parachuteRequested;
     private boolean parachuteStrike;
     private TextureRegion wornHelmet;
@@ -72,9 +77,20 @@ public class Player extends Creature {
     private int pendingUpgrades = 0;
     private int kills = 0;
     private Weapon weapon = Weapons.carbine();
+    private final WeaponSprites weaponSprites = new WeaponSprites(FRAME_DURATION);
 
     public Player(Texture sheet, float x, float y) {
-        super(new TextureRegion(sheet, 0, 0, FRAME_WIDTH, FRAME_HEIGHT), x, y, MAX_LIFE, BASE_SPEED, WIDTH, HEIGHT, ATTACK_RANGE, ATTACK_DAMAGE, HITBOX_SIZE);
+        super(
+                new TextureRegion(sheet, 0, 0, FRAME_WIDTH, FRAME_HEIGHT),
+                x,
+                y,
+                MAX_LIFE,
+                BASE_SPEED,
+                WIDTH,
+                HEIGHT,
+                ATTACK_RANGE,
+                ATTACK_DAMAGE,
+                HITBOX_SIZE);
         this.xp = 0;
         this.critChance = new Stat(CRIT_CHANCE);
         this.critMultiplier = new Stat(CRIT_MULTIPLIER);
@@ -84,7 +100,6 @@ public class Player extends Creature {
         }
         walkAnimation = new Animation<>(FRAME_DURATION, frames);
         stateTime = 0;
-
     }
 
     public float getXp() {
@@ -158,7 +173,7 @@ public class Player extends Creature {
         }
 
         fireTimer += deltaTime;
-        // chrono casque
+        // helmet timer
         if (helmetAnimation.isPlaying()) {
             helmetAnimation.update(deltaTime);
             if (!helmetAnimation.isPlaying()) {
@@ -167,7 +182,7 @@ public class Player extends Creature {
         } else {
             helmetBonus.update(deltaTime);
         }
-        // chrono tabac
+        // tobacco timer
         if (tobaccoAnimation.isPlaying()) {
             tobaccoAnimation.update(deltaTime);
             if (!tobaccoAnimation.isPlaying()) {
@@ -177,7 +192,7 @@ public class Player extends Creature {
             tobaccoBonus.update(this, deltaTime);
         }
         fullHealAnimation.update(deltaTime);
-        // chrono whisky
+        // whisky timer
         whiskyBonus.update(deltaTime);
         if (whiskyAnimation.isPlaying()) {
             whiskyAnimation.update(deltaTime);
@@ -185,7 +200,7 @@ public class Player extends Creature {
                 whiskyBonus.activate();
             }
         }
-        // chrono maté
+        // mate timer
         if (mateAnimation.isPlaying()) {
             mateAnimation.update(deltaTime);
             if (!mateAnimation.isPlaying()) {
@@ -221,7 +236,7 @@ public class Player extends Creature {
         return whiskyBonus.getRemainingTime();
     }
 
-    // hugo lance les parachutes
+    // hugo calls the parachutes
     public void useParachute() {
         parachuteAnimation.play();
         parachuteRequested = true;
@@ -231,7 +246,7 @@ public class Player extends Creature {
         return parachuteStrike;
     }
 
-    // hugo met son casque
+    // hugo puts on the helmet
     public void equipHelmet() {
         if (helmetBonus.isActive()) {
             helmetBonus.activate();
@@ -252,6 +267,7 @@ public class Player extends Creature {
     }
 
     public void disposeAnimations() {
+        weaponSprites.dispose();
         parachuteAnimation.dispose();
         whiskyAnimation.dispose();
         helmetAnimation.dispose();
@@ -272,8 +288,11 @@ public class Player extends Creature {
         if (whiskyTime > 0f) {
             float lean = 9f * MathUtils.sin(whiskyTime * 5f) * Math.min(1f, whiskyTime);
             normalTransform.set(batch.getTransformMatrix());
-            whiskyTransform.set(normalTransform).translate(x, y, 0f)
-                    .rotate(Vector3.Z, lean).translate(-x, -y, 0f);
+            whiskyTransform
+                    .set(normalTransform)
+                    .translate(x, y, 0f)
+                    .rotate(Vector3.Z, lean)
+                    .translate(-x, -y, 0f);
             batch.setTransformMatrix(whiskyTransform);
             drawBody(batch);
             batch.setTransformMatrix(normalTransform);
@@ -298,7 +317,8 @@ public class Player extends Creature {
             fullHealAnimation.draw(batch, x, y, width, height, facingLeft);
         } else if (easterEggGoku.isActive()) {
             easterEggGoku.draw(batch, x, y, facingLeft);
-        } else {
+        } else if (!weaponSprites.draw(
+                batch, weapon.getImageName(), stateTime, x, y, height, facingLeft)) {
             super.draw(batch);
         }
 
@@ -312,9 +332,14 @@ public class Player extends Creature {
         float helmetHeight = 18f;
         float headOffset = mateAnimation.isPlaying() && !tobaccoAnimation.isPlaying() ? 5f : 2f;
         float helmetCenter = facingLeft ? x + headOffset : x - headOffset;
-        float helmetX = facingLeft ? helmetCenter + helmetWidth / 2f : helmetCenter - helmetWidth / 2f;
-        batch.draw(wornHelmet, helmetX, y - height + 2f,
-                facingLeft ? -helmetWidth : helmetWidth, helmetHeight);
+        float helmetX =
+                facingLeft ? helmetCenter + helmetWidth / 2f : helmetCenter - helmetWidth / 2f;
+        batch.draw(
+                wornHelmet,
+                helmetX,
+                y - height + 2f,
+                facingLeft ? -helmetWidth : helmetWidth,
+                helmetHeight);
     }
 
     @Override
@@ -334,8 +359,14 @@ public class Player extends Creature {
             damage *= critMultiplier.getValue();
         }
 
-        return weapon.fire(bulletSprite, x, getCenterY(),
-                target.getX(), target.getCenterY(), damage, getShootRange());
+        return weapon.fire(
+                bulletSprite,
+                x,
+                getCenterY(),
+                target.getX(),
+                target.getCenterY(),
+                damage,
+                getShootRange());
     }
 
     public Stat getFireDelay() {

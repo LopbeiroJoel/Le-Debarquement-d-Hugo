@@ -75,7 +75,7 @@ public class MobLvl1 extends Mob {
         walkTime = moving ? walkTime + deltaTime : 0f;
     }
 
-    // coup de matraque
+    // baton attack
     protected void onAttack() {
         playBatonAttack();
     }

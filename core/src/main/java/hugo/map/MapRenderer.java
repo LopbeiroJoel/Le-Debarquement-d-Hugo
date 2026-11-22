@@ -1,4 +1,4 @@
-// dessine la map
+// draw the map
 package hugo.map;
 
 import com.badlogic.gdx.Gdx;
@@ -22,26 +22,26 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public final class RenduCarte implements Disposable {
+public final class MapRenderer implements Disposable {
 
-    private final CarteJeu map;
+    private final GameMap map;
     private final List<Creature> drawOrder = new ArrayList<>();
-    private final ImagesDecor images = new ImagesDecor();
+    private final DecorSprites images = new DecorSprites();
 
-    // images du sol
+    // ground tiles
     private final List<TextureRegion> groundTiles = new ArrayList<>();
 
-    // contours collisions
+    // collision outlines
     private final ShapeRenderer outlines = new ShapeRenderer();
 
-    // zone visible
+    // visible area
     private final Rectangle visibleArea = new Rectangle();
     private final Texture whitePixel = createWhitePixel();
 
     private final FrameBuffer minimapBuffer;
     public final TextureRegion overview;
 
-    public RenduCarte(CarteJeu map) {
+    public MapRenderer(GameMap map) {
         this.map = map;
 
         loadGround();
@@ -54,18 +54,15 @@ public final class RenduCarte implements Disposable {
         overview.flip(false, true);
     }
 
-    // charge le sol
+    // load ground
     private void loadGround() {
         for (int y = 0; y < map.height; y = y + 1024) {
             for (int x = 0; x < map.width; x = x + 1024) {
                 String path = "render/ground/" + x + "-" + y + ".png";
                 Texture texture = new Texture(Gdx.files.internal(path));
 
-                // pixels nets
-                texture.setFilter(
-                    Texture.TextureFilter.Nearest,
-                    Texture.TextureFilter.Nearest
-                );
+                // sharp pixels
+                texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
 
                 TextureRegion tile = new TextureRegion(texture);
 
@@ -76,21 +73,16 @@ public final class RenduCarte implements Disposable {
         }
     }
 
-    // charge le décor
+    // load decor
     private void loadDecor() {
-        for (TypeDecor type : TypeDecor.values()) {
+        for (DecorType type : DecorType.values()) {
             images.get(type);
         }
     }
 
-    // prépare la mini map
+    // prepare the minimap
     private FrameBuffer createMinimap() {
-        FrameBuffer image = new FrameBuffer(
-            Pixmap.Format.RGBA8888,
-            460,
-            320,
-            false
-        );
+        FrameBuffer image = new FrameBuffer(Pixmap.Format.RGBA8888, 460, 320, false);
 
         OrthographicCamera camera = new OrthographicCamera();
 
@@ -111,13 +103,12 @@ public final class RenduCarte implements Disposable {
         return image;
     }
 
-    // dessine le monde
+    // draw the world
     public void draw(
-        SpriteBatch batch,
-        OrthographicCamera camera,
-        Creature player,
-        List<? extends Creature> enemies
-    ) {
+            SpriteBatch batch,
+            OrthographicCamera camera,
+            Creature player,
+            List<? extends Creature> enemies) {
         drawOrder.clear();
         if (player != null) {
             drawOrder.add(player);
@@ -130,16 +121,16 @@ public final class RenduCarte implements Disposable {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
-        // sol
+        // ground
         drawGround(batch);
 
-        // détails au sol
+        // ground details
         drawGroundDetails(batch);
 
-        // ombres
+        // shadows
         drawShadows(batch);
 
-        // décor et persos
+        // decor and characters
         drawDecorAndCharacters(batch);
         if (player instanceof Player hugo && hugo.getWhiskyTime() > 0f) {
             drawWhiskyTint(batch, hugo.getWhiskyTime());
@@ -148,7 +139,7 @@ public final class RenduCarte implements Disposable {
         batch.end();
     }
 
-    // couleurs whisky
+    // whisky colors
     private void drawWhiskyTint(SpriteBatch batch, float remainingTime) {
         float tint = (MathUtils.sin(remainingTime * 1.8f) + 1f) / 2f;
         float red = MathUtils.lerp(0.58f, 1f, tint);
@@ -170,7 +161,7 @@ public final class RenduCarte implements Disposable {
         return texture;
     }
 
-    // limites caméra
+    // camera bounds
     private void updateVisibleArea(OrthographicCamera camera) {
         float width = camera.viewportWidth * camera.zoom;
         float height = camera.viewportHeight * camera.zoom;
@@ -181,7 +172,7 @@ public final class RenduCarte implements Disposable {
         visibleArea.set(left, top, width, height);
     }
 
-    // herbe terre et routes
+    // grass, dirt and roads
     private void drawGround(SpriteBatch batch) {
         int tileIndex = 0;
 
@@ -189,14 +180,10 @@ public final class RenduCarte implements Disposable {
             for (int x = 0; x < map.width; x = x + 1024) {
                 TextureRegion tile = groundTiles.get(tileIndex++);
 
-                Rectangle position = new Rectangle(
-                    x,
-                    y,
-                    tile.getRegionWidth(),
-                    tile.getRegionHeight()
-                );
+                Rectangle position =
+                        new Rectangle(x, y, tile.getRegionWidth(), tile.getRegionHeight());
 
-                // sol visible seulement
+                // visible tiles only
                 if (visibleArea.overlaps(position)) {
                     batch.draw(tile, x, y);
                 }
@@ -204,68 +191,53 @@ public final class RenduCarte implements Disposable {
         }
     }
 
-    // détails au sol
+    // ground details
     private void drawGroundDetails(SpriteBatch batch) {
-        for (ObjetDecor object : map.getEntities()) {
+        for (DecorObject object : map.getEntities()) {
             if (object.ground && isVisible(object)) {
                 drawObject(batch, object);
             }
         }
     }
 
-    // ombres des objets
+    // object shadows
     private void drawShadows(SpriteBatch batch) {
-        for (ObjetDecor object : map.getEntities()) {
+        for (DecorObject object : map.getEntities()) {
             if (!object.ground && isVisible(object)) {
                 drawShadow(batch, object);
             }
         }
     }
 
-    private void drawShadow(
-        SpriteBatch batch,
-        ObjetDecor object
-    ) {
-        TypeDecor type = object.getType();
+    private void drawShadow(SpriteBatch batch, DecorObject object) {
+        DecorType type = object.getType();
 
-        ImagesDecor.GroundShadow shadow = images.shadow(type);
+        DecorSprites.GroundShadow shadow = images.shadow(type);
 
         float left = object.x - type.width / 2f;
         float top = object.y - type.height;
 
         float opacity = type.footprint.equals("tree") ? 0.20f : 0.25f;
 
-        // ombre sur le côté
+        // cast shadow
         batch.setColor(0.10f, 0.13f, 0.09f, opacity);
 
-        batch.draw(
-            shadow.cast,
-            left,
-            top,
-            shadow.width,
-            shadow.height
-        );
+        batch.draw(shadow.cast, left, top, shadow.width, shadow.height);
 
-        // ombre au pied
+        // contact shadow
         batch.setColor(0.07f, 0.09f, 0.055f, 0.38f);
 
-        batch.draw(
-            shadow.contact,
-            left,
-            top,
-            shadow.width,
-            shadow.height
-        );
+        batch.draw(shadow.contact, left, top, shadow.width, shadow.height);
 
         batch.setColor(Color.WHITE);
     }
 
-    // persos devant ou derrière
+    // draw in depth order
     private void drawDecorAndCharacters(SpriteBatch batch) {
         int nextCreature = 0;
         batch.setColor(Color.WHITE);
 
-        for (ObjetDecor object : map.getEntities()) {
+        for (DecorObject object : map.getEntities()) {
             if (object.ground) {
                 continue;
             }
@@ -285,12 +257,9 @@ public final class RenduCarte implements Disposable {
         }
     }
 
-    // dessine un objet
-    private void drawObject(
-        SpriteBatch batch,
-        ObjetDecor object
-    ) {
-        TypeDecor type = object.getType();
+    // draw one object
+    private void drawObject(SpriteBatch batch, DecorObject object) {
+        DecorType type = object.getType();
 
         TextureRegion image = images.get(type);
 
@@ -301,48 +270,43 @@ public final class RenduCarte implements Disposable {
         batch.draw(image, left, top, type.width, height);
     }
 
-    // objet visible
-    private boolean isVisible(ObjetDecor object) {
-        TypeDecor type = object.getType();
+    // visible object
+    private boolean isVisible(DecorObject object) {
+        DecorType type = object.getType();
 
         float left = object.x - type.width / 2f;
         float top = object.y - type.height;
 
-        // place pour son ombre
+        // room for the shadow
         float width = type.width + type.height * 0.25f;
         float height = type.height + type.height * 0.35f;
 
-        Rectangle position = new Rectangle(
-            left,
-            top,
-            width,
-            height
-        );
+        Rectangle position = new Rectangle(left, top, width, height);
 
         return visibleArea.overlaps(position);
     }
 
-    // collisions en rouge
+    // red collision boxes
     public void drawCollisions(OrthographicCamera camera) {
         outlines.setProjectionMatrix(camera.combined);
 
         outlines.begin(ShapeRenderer.ShapeType.Line);
         outlines.setColor(1, 0.25f, 0.2f, 1);
 
-        // collisions du décor
-        for (ObjetDecor object : map.getEntities()) {
+        // decor collision boxes
+        for (DecorObject object : map.getEntities()) {
             if (object.collision != null && isVisible(object)) {
                 drawCollisionBox(object.collision);
             }
         }
 
-        // murs des tranchées
+        // trench walls
         for (Rectangle wall : map.trenchWalls) {
             drawCollisionBox(wall);
         }
 
-        // bord de la rivière
-        ZoneCarte river = map.areas.get("riverShape");
+        // river edge
+        MapArea river = map.areas.get("riverShape");
 
         for (float[] outline : river.polygons) {
             outlines.polygon(outline);
@@ -351,12 +315,12 @@ public final class RenduCarte implements Disposable {
         outlines.end();
     }
 
-    // dessine une collision
+    // draw a collision
     private void drawCollisionBox(Rectangle box) {
         outlines.rect(box.x, box.y, box.width, box.height);
     }
 
-    // libère les images
+    // free textures
     public void dispose() {
         for (TextureRegion tile : groundTiles) {
             tile.getTexture().dispose();

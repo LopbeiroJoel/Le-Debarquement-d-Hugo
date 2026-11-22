@@ -1,10 +1,5 @@
 package hugo.upgrade;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -13,12 +8,17 @@ import com.badlogic.gdx.math.Rectangle;
 
 import hugo.entity.Player;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class UpgradeMenu {
 
     private static final int CHOICE_COUNT = 3;
     private static final float CARD_WIDTH = 280;
     private static final float CARD_HEIGHT = 400;
-    private static final float CARD_GAP = 36; 
+    private static final float CARD_GAP = 36;
 
     private final UpgradePool pool = new UpgradePool();
     private List<Upgrade> choices = new ArrayList<>();
@@ -27,11 +27,13 @@ public class UpgradeMenu {
     private final Map<String, Texture> textures = new HashMap<>();
 
     private Texture texture(String path) {
-        return textures.computeIfAbsent(path, p -> {
-            Texture t = new Texture(p);
-            t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-            return t;
-        });
+        return textures.computeIfAbsent(
+                path,
+                p -> {
+                    Texture t = new Texture(p);
+                    t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+                    return t;
+                });
     }
 
     private Texture cardTexture(Upgrade upgrade, boolean hovered) {
@@ -51,15 +53,15 @@ public class UpgradeMenu {
     }
 
     public void open(Player player) {
-        choices = pool.pickRandom(CHOICE_COUNT, player); 
+        choices = pool.pickRandom(CHOICE_COUNT, player);
         open = true;
     }
 
     public Rectangle getCardBounds(int index, int screenWidth, int screenHeight) {
         float totalWidth = CHOICE_COUNT * CARD_WIDTH + (CHOICE_COUNT - 1) * CARD_GAP;
-        float startX = (screenWidth - totalWidth) / 2f;      
-        float x = startX + index * (CARD_WIDTH + CARD_GAP);        
-        float y = (screenHeight - CARD_HEIGHT) / 2f - 40;          
+        float startX = (screenWidth - totalWidth) / 2f;
+        float x = startX + index * (CARD_WIDTH + CARD_GAP);
+        float y = (screenHeight - CARD_HEIGHT) / 2f - 40;
         return new Rectangle(x, y, CARD_WIDTH, CARD_HEIGHT);
     }
 
@@ -68,32 +70,32 @@ public class UpgradeMenu {
             return;
         }
 
-        int chosen = -1;                             
+        int chosen = -1;
         if (Gdx.input.justTouched()) {
-            float mouseX = Gdx.input.getX();        
-            float mouseY = screenHeight - Gdx.input.getY();  
+            float mouseX = Gdx.input.getX();
+            float mouseY = screenHeight - Gdx.input.getY();
             for (int i = 0; i < choices.size(); i++) {
                 if (getCardBounds(i, screenWidth, screenHeight).contains(mouseX, mouseY)) {
-                    chosen = i;                        
+                    chosen = i;
                 }
             }
         }
 
         if (chosen < 0) {
-            return;                                  
+            return;
         }
 
-        choices.get(chosen).apply(player);                   
-        player.consumePendingUpgrade();                               
+        choices.get(chosen).apply(player);
+        player.consumePendingUpgrade();
 
         if (player.getPendingUpgrades() > 0) {
-            open(player);                                        
+            open(player);
         } else {
-            open = false;                                   
+            open = false;
         }
     }
 
-    public List<Upgrade> getChoices() {                  
+    public List<Upgrade> getChoices() {
         return choices;
     }
 
@@ -117,6 +119,12 @@ public class UpgradeMenu {
             Rectangle card = getCardBounds(i, screenWidth, screenHeight);
             boolean hovered = card.contains(mouseX, mouseY);
             float lift = hovered ? 20 : 0;
-            batch.draw(cardTexture(choices.get(i), hovered), card.x - 10, card.y - 20 + lift, 300, 430);        }       
+            batch.draw(
+                    cardTexture(choices.get(i), hovered),
+                    card.x - 10,
+                    card.y - 20 + lift,
+                    300,
+                    430);
+        }
     }
 }

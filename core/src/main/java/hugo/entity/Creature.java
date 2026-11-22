@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
-import hugo.map.CarteJeu;
+import hugo.map.GameMap;
 
 public abstract class Creature implements Entity {
 
@@ -22,10 +22,20 @@ public abstract class Creature implements Entity {
     protected float dirX, dirY;
     private final Rectangle hitbox = new Rectangle();
     private final float hitboxSize;
-    protected CarteJeu map;
-    protected boolean facingLeft = false;  
+    protected GameMap map;
+    protected boolean facingLeft = false;
 
-    public Creature(TextureRegion sprite, float x, float y, float maxLife, float baseSpeed, float width, float height, float attackRange, float attackDamage, float hitboxSize) {
+    public Creature(
+            TextureRegion sprite,
+            float x,
+            float y,
+            float maxLife,
+            float baseSpeed,
+            float width,
+            float height,
+            float attackRange,
+            float attackDamage,
+            float hitboxSize) {
         this.sprite = new TextureRegion(sprite);
         this.sprite.flip(false, true);
         this.x = x;
@@ -37,7 +47,6 @@ public abstract class Creature implements Entity {
         this.attackRange = new Stat(attackRange);
         this.attackDamage = new Stat(attackDamage);
         this.hitboxSize = hitboxSize;
-
     }
 
     public Life getLife() {
@@ -79,12 +88,7 @@ public abstract class Creature implements Entity {
     }
 
     private void updateHitbox() {
-        hitbox.set(
-                x - hitboxSize / 2f,
-                getCenterY() - hitboxSize / 2f,
-                hitboxSize,
-                hitboxSize
-        );
+        hitbox.set(x - hitboxSize / 2f, getCenterY() - hitboxSize / 2f, hitboxSize, hitboxSize);
     }
 
     public Rectangle getHitbox() {
@@ -142,7 +146,7 @@ public abstract class Creature implements Entity {
         batch.setColor(Color.WHITE);
     }
 
-    public void setMap(CarteJeu map) {
+    public void setMap(GameMap map) {
         this.map = map;
     }
 }

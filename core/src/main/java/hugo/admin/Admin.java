@@ -3,7 +3,7 @@ package hugo.admin;
 import hugo.mob.spawn.MobSpawner;
 
 public final class Admin {
-    // supprime tous les mobs
+    // clear all mobs
     public void killAllMobs(MobSpawner spawner) {
         spawner.getMobs().clear();
     }

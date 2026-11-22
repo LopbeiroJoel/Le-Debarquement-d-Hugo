@@ -1,13 +1,13 @@
 package hugo.gameover;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class GameOverMenu {
 
@@ -24,11 +24,13 @@ public class GameOverMenu {
     private final Map<String, Texture> textures = new HashMap<>();
 
     private Texture texture(String path) {
-        return textures.computeIfAbsent(path, p -> {
-            Texture t = new Texture(p);
-            t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-            return t;
-        });
+        return textures.computeIfAbsent(
+                path,
+                p -> {
+                    Texture t = new Texture(p);
+                    t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+                    return t;
+                });
     }
 
     public void dispose() {
@@ -56,7 +58,7 @@ public class GameOverMenu {
             return;
         }
 
-        // 1. voile sombre, un peu plus opaque que pour le menu
+        // dark overlay
         batch.setColor(0, 0, 0, 0.72f);
         batch.draw(pixel, 0, 0, screenWidth, screenHeight);
         batch.setColor(Color.WHITE);
@@ -64,18 +66,23 @@ public class GameOverMenu {
         Rectangle panel = getPanelBounds(screenWidth, screenHeight);
         Rectangle button = getButtonBounds(screenWidth, screenHeight);
 
-        // 2. titre et panneau
-        batch.draw(texture("gameover/title.png"), (screenWidth - 1000) / 2f, panel.y + PANEL_HEIGHT + 20, 1000, 150);
+        // title and panel
+        batch.draw(
+                texture("gameover/title.png"),
+                (screenWidth - 1000) / 2f,
+                panel.y + PANEL_HEIGHT + 20,
+                1000,
+                150);
         batch.draw(texture("gameover/panel.png"), panel.x - 10, panel.y - 20, 540, 270);
 
-        // 3. les trois nombres
+        // level, wave and kills
         float top = panel.y + PANEL_HEIGHT;
         float right = panel.x + 480;
         drawNumber(batch, level, right, top - 64);
         drawNumber(batch, wave, right, top - 120);
         drawNumber(batch, kills, right, top - 176);
 
-        // 4. le bouton, normal ou survolé
+        // replay button and hover
         float mouseX = Gdx.input.getX();
         float mouseY = screenHeight - Gdx.input.getY();
         boolean hovered = button.contains(mouseX, mouseY);
@@ -103,7 +110,7 @@ public class GameOverMenu {
         return new Rectangle(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
     }
 
-    // Renvoie true si le joueur vient de cliquer sur REJOUER
+    // return true when replay is clicked
     public boolean update(int screenWidth, int screenHeight) {
         if (!open || !Gdx.input.justTouched()) {
             return false;

@@ -1,18 +1,20 @@
 package hugo;
 
 import com.badlogic.gdx.Game;
-import hugo.map.EcranCarte;
+
+import hugo.map.MapScreen;
 import hugo.startgame.StartGame;
 
-public class JeuHugo extends Game {
+public class HugoGame extends Game {
     public void create() {
         if (Boolean.getBoolean("hugo.smokeTest")) {
-            setScreen(new EcranCarte(true));
+            setScreen(new MapScreen(true));
         } else {
             setScreen(new StartGame(this));
         }
     }
+
     public void dispose() {
-        if(getScreen()!=null)getScreen().dispose();
+        if (getScreen() != null) getScreen().dispose();
     }
 }

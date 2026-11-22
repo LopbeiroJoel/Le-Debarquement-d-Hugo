@@ -1,9 +1,9 @@
 package hugo.upgrade;
 
-import java.util.function.Supplier;
-
 import hugo.entity.Player;
 import hugo.weapon.Weapon;
+
+import java.util.function.Supplier;
 
 public class WeaponUpgrade extends Upgrade {
 

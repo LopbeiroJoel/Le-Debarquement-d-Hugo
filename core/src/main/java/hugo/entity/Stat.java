@@ -12,12 +12,13 @@ public class Stat {
     }
 
     public void addBonus(float value) {
-        bonus += value;                     
+        bonus += value;
     }
 
     public void removeBonus(float value) {
-        bonus -= value;                     
+        bonus -= value;
     }
+
     public float getValue() {
         return (baseValue + bonus) * multiplier;
     }

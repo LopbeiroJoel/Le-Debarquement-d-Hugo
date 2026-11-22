@@ -10,7 +10,7 @@ public final class TobaccoBonus {
 
     private float remainingTime;
 
-    // moins de vie plus de dégâts
+    // trade health for damage
     public void activate(Player player) {
         Life life = player.getLife();
         life.takeDamage(life.getCurrentLife() / 2f);

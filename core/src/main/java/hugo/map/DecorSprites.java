@@ -9,12 +9,12 @@ import com.badlogic.gdx.utils.Disposable;
 
 import java.util.EnumMap;
 
-public final class ImagesDecor implements Disposable {
-    private final EnumMap<TypeDecor, TextureRegion> sprites = new EnumMap<>(TypeDecor.class);
-    private final EnumMap<TypeDecor, GroundShadow> shadows = new EnumMap<>(TypeDecor.class);
+public final class DecorSprites implements Disposable {
+    private final EnumMap<DecorType, TextureRegion> sprites = new EnumMap<>(DecorType.class);
+    private final EnumMap<DecorType, GroundShadow> shadows = new EnumMap<>(DecorType.class);
 
-    // charge chaque sprite une fois
-    public TextureRegion get(TypeDecor type) {
+    // load each sprite once
+    public TextureRegion get(DecorType type) {
         TextureRegion sprite = sprites.get(type);
         if (sprite != null) {
             return sprite;
@@ -31,8 +31,8 @@ public final class ImagesDecor implements Disposable {
         return sprite;
     }
 
-    // recadre le sprite si besoin
-    private Pixmap loadOriginalSprite(TypeDecor type) {
+    // crop the sprite if needed
+    private Pixmap loadOriginalSprite(DecorType type) {
         Pixmap source = new Pixmap(Gdx.files.internal(type.path.substring(1)));
         int left = source.getWidth();
         int top = source.getHeight();
@@ -57,8 +57,16 @@ public final class ImagesDecor implements Disposable {
 
         Pixmap pixels = new Pixmap(type.width * 3, type.height * 3, Pixmap.Format.RGBA8888);
         pixels.setFilter(Pixmap.Filter.NearestNeighbour);
-        pixels.drawPixmap(source, left, top, right - left + 1, bottom - top + 1,
-            0, 0, pixels.getWidth(), pixels.getHeight());
+        pixels.drawPixmap(
+                source,
+                left,
+                top,
+                right - left + 1,
+                bottom - top + 1,
+                0,
+                0,
+                pixels.getWidth(),
+                pixels.getHeight());
         source.dispose();
         return pixels;
     }
@@ -85,8 +93,8 @@ public final class ImagesDecor implements Disposable {
         }
     }
 
-    // prépare les ombres au sol
-    private GroundShadow createShadow(TypeDecor type, Pixmap source) {
+    // create ground shadows
+    private GroundShadow createShadow(DecorType type, Pixmap source) {
         int width = type.width * 2;
         int height = type.height * 2;
         int shadowWidth = width + (int) Math.ceil(height * 0.22) + 4;
@@ -100,7 +108,9 @@ public final class ImagesDecor implements Disposable {
         for (int x = 0; x < width; x++) {
             int sourceX = x * source.getWidth() / width;
             int bottom = height - 1;
-            while (bottom >= 0 && (source.getPixel(sourceX, bottom * source.getHeight() / height) & 255) <= 128) {
+            while (bottom >= 0
+                    && (source.getPixel(sourceX, bottom * source.getHeight() / height) & 255)
+                            <= 128) {
                 bottom--;
             }
             if (bottom < 0) {
@@ -136,7 +146,7 @@ public final class ImagesDecor implements Disposable {
         return shadow;
     }
 
-    public GroundShadow shadow(TypeDecor type) {
+    public GroundShadow shadow(DecorType type) {
         get(type);
         return shadows.get(type);
     }

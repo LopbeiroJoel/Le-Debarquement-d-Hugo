@@ -57,7 +57,7 @@ public class MobLvl2 extends Mob {
         walkTime = moving ? walkTime + deltaTime : 0f;
     }
 
-    // chien mord
+    // dog bites
     protected void onAttack() {
         biteTime = 0f;
         moving = false;

@@ -18,11 +18,12 @@ public final class BonusAnimation implements Disposable {
         this.frameDuration = frameDuration;
     }
 
-    // lance l’animation
+    // play animation
     public void play() {
         if (animation == null) {
             sheet = new Texture(assetPath);
-            TextureRegion[][] grid = TextureRegion.split(sheet, sheet.getWidth() / 2, sheet.getHeight() / 2);
+            TextureRegion[][] grid =
+                    TextureRegion.split(sheet, sheet.getWidth() / 2, sheet.getHeight() / 2);
             TextureRegion[] frames = {grid[0][0], grid[0][1], grid[1][0], grid[1][1]};
             for (TextureRegion frame : frames) {
                 frame.flip(false, true);
@@ -45,11 +46,17 @@ public final class BonusAnimation implements Disposable {
         }
     }
 
-    public void draw(SpriteBatch batch, float x, float y, float width, float height, boolean facingLeft) {
+    public void draw(
+            SpriteBatch batch, float x, float y, float width, float height, boolean facingLeft) {
         TextureRegion frame = animation.getKeyFrame(time);
         float frameWidth = width * 0.94f;
         float left = facingLeft ? x + frameWidth / 2f : x - frameWidth / 2f;
-        batch.draw(frame, left, y - height * 0.98f, facingLeft ? -frameWidth : frameWidth, height * 0.94f);
+        batch.draw(
+                frame,
+                left,
+                y - height * 0.98f,
+                facingLeft ? -frameWidth : frameWidth,
+                height * 0.94f);
     }
 
     @Override

@@ -16,7 +16,6 @@ public class Life {
 
     private void setCurrentLife(float currentLife) {
         this.currentLife = Math.max(0, Math.min(currentLife, maxLife));
-
     }
 
     public void takeDamage(float amount) {

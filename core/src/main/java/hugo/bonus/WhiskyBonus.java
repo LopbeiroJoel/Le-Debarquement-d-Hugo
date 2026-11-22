@@ -3,7 +3,7 @@ package hugo.bonus;
 public final class WhiskyBonus {
     private float remainingTime;
 
-    // chrono whisky
+    // whisky timer
     public void activate() {
         remainingTime = 30f;
     }

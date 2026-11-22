@@ -1,0 +1,33 @@
+package hugo.desktop;
+
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+
+import hugo.HugoGame;
+
+import org.lwjgl.glfw.GLFW;
+
+import java.util.Arrays;
+
+public class DesktopLauncher {
+    public static void main(String[] args) {
+        if (StartupHelper.startNewJvmIfRequired()) return;
+        if (Arrays.asList(args).contains("--smoke-test"))
+            System.setProperty("hugo.smokeTest", "true");
+        if (System.getenv("WSL_DISTRO_NAME") != null && System.getenv("DISPLAY") != null)
+            GLFW.glfwInitHint(GLFW.GLFW_PLATFORM, GLFW.GLFW_PLATFORM_X11);
+        new Lwjgl3Application(new HugoGame(), getDefaultConfiguration());
+    }
+
+    private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
+        Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
+        configuration.setTitle("LeDebarquementDHugo");
+        configuration.useVsync(true);
+        configuration.setForegroundFPS(
+                Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
+        configuration.setWindowedMode(1440, 900);
+        configuration.setWindowIcon(
+                "libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
+        return configuration;
+    }
+}

@@ -8,7 +8,7 @@ public class WaveManager {
     private int cycle = 1;
     private float elapsedTime;
 
-    // chrono vague
+    // wave timer
     public boolean update(float delta) {
         elapsedTime += delta;
         boolean waveChanged = false;
@@ -28,12 +28,12 @@ public class WaveManager {
         return cycle;
     }
 
-    // mobs plus forts à chaque cycle
+    // stronger mobs each cycle
     public float getDamageMultiplier() {
         return (float) Math.pow(1.2, cycle - 1);
     }
 
-    // vague suivante
+    // next wave
     private void nextWave() {
         wave++;
         if (wave > WAVES_PER_CYCLE) {

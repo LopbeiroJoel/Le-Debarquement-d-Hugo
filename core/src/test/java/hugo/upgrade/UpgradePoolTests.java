@@ -1,29 +1,28 @@
 package hugo.upgrade;
 
+import hugo.entity.Player;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
-import hugo.entity.Player;
-
-public final class TestsPool {
+public final class UpgradePoolTests {
 
     private static void check(boolean ok, String text) {
         if (!ok) throw new AssertionError(text);
     }
 
-    // une fausse carte pour les tests : elle ne fait rien quand on la choisit
+    // dummy upgrade for the tests
     private static Upgrade card(String name, float weight) {
         return new Upgrade(name, name, weight) {
             @Override
-            public void apply(Player player) {
-            }
+            public void apply(Player player) {}
         };
     }
 
     public static void main(String[] args) {
-        Random rng = new Random(42);   // graine fixe : le hasard est le meme a chaque lancement
+        Random rng = new Random(42); // fixed seed for repeatable tests
 
         List<Upgrade> cards = new ArrayList<>();
         cards.add(card("a", 1));
@@ -35,23 +34,25 @@ public final class TestsPool {
 
         for (int i = 0; i < 1000; i++) {
             List<Upgrade> picked = UpgradePool.pickRandom(cards, 3, u -> true, rng);
-            check(picked.size() == 3, "3 cartes tirees");
-            check(new HashSet<>(picked).size() == 3, "jamais deux fois la meme carte");
+            check(picked.size() == 3, "three cards drawn");
+            check(new HashSet<>(picked).size() == 3, "no duplicate cards");
             for (Upgrade u : picked) {
-                check(!u.getName().equals("never"), "un poids 0 n'est jamais tire");
+                check(!u.getName().equals("never"), "zero-weight cards never appear");
             }
         }
 
         for (int i = 0; i < 1000; i++) {
-            List<Upgrade> picked = UpgradePool.pickRandom(cards, 3, u -> !u.getName().equals("a"), rng);
+            List<Upgrade> picked =
+                    UpgradePool.pickRandom(cards, 3, u -> !u.getName().equals("a"), rng);
             for (Upgrade u : picked) {
-                check(!u.getName().equals("a"), "une carte indisponible n'est jamais tiree");
+                check(!u.getName().equals("a"), "unavailable cards never appear");
             }
         }
 
-        List<Upgrade> few = UpgradePool.pickRandom(cards, 3,
-                u -> u.getName().equals("a") || u.getName().equals("b"), rng);
-        check(few.size() == 2, "seulement 2 cartes disponibles : on en renvoie 2");
+        List<Upgrade> few =
+                UpgradePool.pickRandom(
+                        cards, 3, u -> u.getName().equals("a") || u.getName().equals("b"), rng);
+        check(few.size() == 2, "return both available cards");
 
         List<Upgrade> duo = new ArrayList<>();
         duo.add(card("speed", 1));
@@ -62,8 +63,10 @@ public final class TestsPool {
                 rare++;
             }
         }
-        check(rare > 2000 && rare < 2600, "la carte rare sort environ 23 % du temps : " + rare);
+        check(
+                rare > 2000 && rare < 2600,
+                "rare card appears about 23 percent of the time: " + rare);
 
-        System.out.println("TestsPool : tout passe");
+        System.out.println("UpgradePoolTests: all checks passed");
     }
 }

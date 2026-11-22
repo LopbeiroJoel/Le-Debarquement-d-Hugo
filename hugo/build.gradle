@@ -19,7 +19,7 @@ apply plugin: 'io.github.fourlastor.construo'
 import io.github.fourlastor.construo.Target
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-application.mainClass = 'hugo.bureau.LanceurBureau'
+application.mainClass = 'hugo.desktop.DesktopLauncher'
 application.applicationName = appName
 eclipse.project.name = appName + '-hugo'
 java.sourceCompatibility = 25
@@ -143,12 +143,12 @@ construo {
   targets.configure {
     register("linuxX64", Target.Linux) {
       architecture.set(Target.Architecture.X86_64)
-      jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.10%2B7/OpenJDK21U-jdk_x64_linux_hotspot_21.0.10_7.tar.gz")
+      jdkUrl.set("https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5.1%2B2/OpenJDK25U-jdk_x64_linux_hotspot_25.0.5.1_2.tar.gz")
       // Linux does not currently have a way to set the icon on the executable
     }
     register("macM1", Target.MacOs) {
       architecture.set(Target.Architecture.AARCH64)
-      jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.10%2B7/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.10_7.tar.gz")
+      jdkUrl.set("https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5.1%2B2/OpenJDK25U-jdk_aarch64_mac_hotspot_25.0.5.1_2.tar.gz")
       // macOS needs an identifier
       identifier.set("hugo." + appName)
       // Optional: icon for macOS, as an ICNS file
@@ -156,7 +156,7 @@ construo {
     }
     register("macX64", Target.MacOs) {
       architecture.set(Target.Architecture.X86_64)
-      jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.10%2B7/OpenJDK21U-jdk_x64_mac_hotspot_21.0.10_7.tar.gz")
+      jdkUrl.set("https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5.1%2B2/OpenJDK25U-jdk_x64_mac_hotspot_25.0.5.1_2.tar.gz")
       // macOS needs an identifier
       identifier.set("hugo." + appName)
       // Optional: icon for macOS, as an ICNS file
@@ -166,7 +166,7 @@ construo {
       architecture.set(Target.Architecture.X86_64)
       // Optional: icon for Windows, as a PNG
       icon.set(project.file("icons/logo.png"))
-      jdkUrl.set("https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.10%2B7/OpenJDK21U-jdk_x64_windows_hotspot_21.0.10_7.zip")
+      jdkUrl.set("https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5.1%2B2/OpenJDK25U-jdk_x64_windows_hotspot_25.0.5.1_2.zip")
       // Uncomment the next line to show a console when the game runs, to print messages.
       //useConsole.set(true)
     }
@@ -196,12 +196,12 @@ startScripts.dependsOn(':hugo:jar')
 startScripts.classpath = project.tasks.jar.outputs.files
 
 // Helps if debugging on Linux with an Nvidia GPU.
-// This means AideDemarrage won't try to restart the JVM, which can prevent debugging.
+// This means StartupHelper won't try to restart the JVM, which can prevent debugging.
 // This only applies to Gradle tasks, not main methods debugged when launching a main() method directly.
 // As a more general solution, set the environment variable __GL_THREADED_OPTIMIZATIONS to 0 globally, on Linux
 // machines with Nvidia GPUs where you need to debug LWJGL3 apps and games.
 // You can also set __GL_THREADED_OPTIMIZATIONS to 0 in run configurations, which you would need per main() method.
-// AideDemarrage will still restart the JVM to set this environment variable when run as a distributable JAR, which is
+// StartupHelper will still restart the JVM to set this environment variable when run as a distributable JAR, which is
 // a good thing for end users. They won't need to ever set the debug-specific environment variable.
 tasks.withType(JavaExec.class).configureEach {
   environment("__GL_THREADED_OPTIMIZATIONS", 0)

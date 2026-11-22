@@ -1,10 +1,10 @@
 package hugo.weapon;
 
-import java.util.List;
-
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import hugo.entity.Projectile;
+
+import java.util.List;
 
 public abstract class Weapon {
 
@@ -16,8 +16,14 @@ public abstract class Weapon {
     private final float bulletSpeed;
     private final float bulletSize;
 
-    public Weapon(String name, String imageName, float baseDamage, float baseFireDelay,
-            float baseRange, float bulletSpeed, float bulletSize) {
+    public Weapon(
+            String name,
+            String imageName,
+            float baseDamage,
+            float baseFireDelay,
+            float baseRange,
+            float bulletSpeed,
+            float bulletSize) {
         this.name = name;
         this.imageName = imageName;
         this.baseDamage = baseDamage;
@@ -55,7 +61,12 @@ public abstract class Weapon {
         return bulletSize;
     }
 
-    public abstract List<Projectile> fire(TextureRegion sprite, float x, float y,
-            float targetX, float targetY, float damage, float range);
-
+    public abstract List<Projectile> fire(
+            TextureRegion sprite,
+            float x,
+            float y,
+            float targetX,
+            float targetY,
+            float damage,
+            float range);
 }

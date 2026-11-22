@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+
 import hugo.entity.Player;
 
 public final class EasterEggGoku {
@@ -25,7 +26,7 @@ public final class EasterEggGoku {
     private float walkTime;
     private boolean moving;
 
-    // hugo passe super saiyan
+    // hugo goes super saiyan
     public void toggle(Player player, Texture pixel) {
         if (active) {
             player.getSpeed().removeMultiplier(SPEED_MULTIPLIER);
@@ -36,7 +37,9 @@ public final class EasterEggGoku {
                 sprite = new TextureRegion(new Texture("easteregg/hugo-super-saiyan.png"));
                 sprite.flip(false, true);
                 walkSheet = new Texture("easteregg/hugo-super-saiyan-walk.png");
-                TextureRegion[][] grid = TextureRegion.split(walkSheet, walkSheet.getWidth() / 2, walkSheet.getHeight() / 2);
+                TextureRegion[][] grid =
+                        TextureRegion.split(
+                                walkSheet, walkSheet.getWidth() / 2, walkSheet.getHeight() / 2);
                 TextureRegion[] frames = {grid[0][0], grid[0][1], grid[1][0], grid[1][1]};
                 for (TextureRegion frame : frames) {
                     frame.flip(false, true);

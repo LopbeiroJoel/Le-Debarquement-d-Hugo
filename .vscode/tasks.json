@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Compiler",
+      "label": "Build",
       "type": "shell",
       "command": "./gradlew core:classes hugo:classes",
       "group": {
@@ -11,21 +11,30 @@
       },
       "problemMatcher": [
         "$javac"
-      ]
+      ],
+      "windows": {
+        "command": ".\\gradlew.bat core:classes hugo:classes"
+      }
     },
     {
-      "label": "Lancer",
+      "label": "Run",
       "type": "shell",
       "command": "./gradlew hugo:run",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "windows": {
+        "command": ".\\gradlew.bat hugo:run"
+      }
     },
     {
-      "label": "Tester",
+      "label": "Test",
       "type": "shell",
       "command": "./gradlew core:check",
       "problemMatcher": [
         "$javac"
-      ]
+      ],
+      "windows": {
+        "command": ".\\gradlew.bat core:check"
+      }
     }
   ]
 }

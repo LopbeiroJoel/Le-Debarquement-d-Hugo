@@ -3,6 +3,7 @@ package hugo.mob;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
 import hugo.entity.Creature;
 import hugo.entity.Projectile;
 
@@ -16,7 +17,7 @@ public class MobLvl4 extends AnimatedMob {
         shot = readAnimation(fire, 0.10f);
     }
 
-    // vétéran tire
+    // veteran shoots
     public void attackTarget(Creature target, TextureRegion bullet, List<Projectile> projectiles) {
         if (shootAt(target, bullet, projectiles, 300f)) {
             playShot();
